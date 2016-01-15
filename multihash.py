@@ -26,14 +26,15 @@ class Func(Enum):
 class Multihash(namedtuple('Multihash', 'func length digest')):
     """A named tuple representing multihash function, length and digest.
 
-    The function may be a `Func` member or its integer value (the function
-    code).
+    The hash function is a `Func` member:
 
     >>> mh = Multihash(Func.sha1, 20, b'BINARY_DIGEST')
     >>> mh == (Func.sha1, 20, b'BINARY_DIGEST')
     True
     >>> mh == (mh.func, mh.length, mh.digest)
     True
+
+    Although it can also be its integer value (the function code):
 
     >>> mhfc = Multihash(Func.sha1.value, mh.length, mh.digest)
     >>> mhfc == mh
