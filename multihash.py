@@ -46,7 +46,7 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         try:
             f = Func(func)
         except ValueError as ve:
-            raise ValueError("invalid hash function code", f)
+            raise ValueError("invalid hash function code", func)
         return super(cls, Multihash).__new__(cls, f, length, digest)
 
 
