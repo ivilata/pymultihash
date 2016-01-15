@@ -49,6 +49,16 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         return super(cls, Multihash).__new__(cls, f, length, digest)
 
 
+def decode(digest):
+    r"""Decode a multihash-encoded binary digest into a `Multihash`.
+
+    >>> digest = b'\x11\x0a\x0b\xee\xc7\xb5\xea?\x0f\xdb\xc9]'
+    >>> decode(digest) == (Func.sha1, 10, digest[2:])
+    True
+    """
+    return Multihash(int(digest[0]), int(digest[1]), digest[2:])
+
+
 def _test():
     import doctest
     doctest.testmod()
