@@ -28,6 +28,8 @@ class Func(Enum):
     blake2b = 0x40
     blake2s = 0x41
 
+_func_from_name = {f.name.replace('_', '-'): f for f in Func}
+
 
 class Multihash(namedtuple('Multihash', 'func length digest')):
     """A named tuple representing multihash function, length and digest.
@@ -40,10 +42,14 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
     >>> mh == (mh.func, mh.length, mh.digest)
     True
 
-    Although it can also be its integer value (the function code):
+    Although it can also be its integer value (the function code) or its
+    string name (the function name):
 
     >>> mhfc = Multihash(Func.sha1.value, mh.length, mh.digest)
     >>> mhfc == mh
+    True
+    >>> mhfn = Multihash('sha2-256', 32, b'...')
+    >>> mhfn.func is Func.sha2_256
     True
 
     Application-specific codes (0x00-0x0f) are accepted.  Other codes raise
@@ -65,6 +71,8 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         except ValueError as ve:
             if _is_app_specific_func(func):
                 f = int(func)  # application-specific function code
+            elif func in _func_from_name:
+                f = _func_from_name[func]  # function name
             else:
                 raise ValueError("invalid hash function code", func)
         return super(cls, Multihash).__new__(cls, f, length, digest)
