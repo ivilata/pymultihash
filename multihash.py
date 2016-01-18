@@ -28,7 +28,9 @@ class Func(Enum):
     blake2b = 0x40
     blake2s = 0x41
 
-_func_from_name = {f.name.replace('_', '-'): f for f in Func}
+# Allows lookup by `Func` member name or CSV table name.
+_func_from_name = dict(Func.__members__)
+_func_from_name.update({f.name.replace('_', '-'): f for f in Func})
 
 
 class Multihash(namedtuple('Multihash', 'func length digest')):
@@ -43,7 +45,7 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
     True
 
     Although it can also be its integer value (the function code) or its
-    string name (the function name):
+    string name (the function name, with either underscore or hyphen):
 
     >>> mhfc = Multihash(Func.sha1.value, mh.length, mh.digest)
     >>> mhfc == mh
