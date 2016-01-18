@@ -5,6 +5,12 @@
 
 from collections import namedtuple
 from enum import Enum
+from numbers import Integral
+
+
+def _is_app_specific_func(code):
+    """Is the given hash function integer `code` application-specific?"""
+    return isinstance(code, Integral) and (0x00 <= code <= 0x0f)
 
 
 class Func(Enum):
@@ -39,6 +45,17 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
     >>> mhfc = Multihash(Func.sha1.value, mh.length, mh.digest)
     >>> mhfc == mh
     True
+
+    Application-specific codes (0x00-0x0f) are accepted.  Other codes raise
+    `ValueError`:
+
+    >>> mhfc = Multihash(0x01, 4, b'...')
+    >>> mhfc.func
+    1
+    >>> mhfc = Multihash(1234, 4, b'...')
+    Traceback (most recent call last):
+        ...
+    ValueError: ('invalid hash function code', 1234)
     """
     __slots__ = ()
 
@@ -46,7 +63,10 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         try:
             f = Func(func)
         except ValueError as ve:
-            raise ValueError("invalid hash function code", func)
+            if _is_app_specific_func(func):
+                f = int(func)  # application-specific function code
+            else:
+                raise ValueError("invalid hash function code", func)
         return super(cls, Multihash).__new__(cls, f, length, digest)
 
 
