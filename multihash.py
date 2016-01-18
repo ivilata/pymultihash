@@ -52,8 +52,8 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
     >>> mhfn.func is Func.sha2_256
     True
 
-    Application-specific codes (0x00-0x0f) are accepted.  Other codes raise
-    `ValueError`:
+    Application-specific codes (0x00-0x0f) are also accepted.  Other codes
+    raise `ValueError`:
 
     >>> mhfc = Multihash(0x01, 4, b'...')
     >>> mhfc.func
@@ -62,12 +62,13 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
     Traceback (most recent call last):
         ...
     ValueError: ('invalid hash function code', 1234)
+
     """
     __slots__ = ()
 
     def __new__(cls, func, length, digest):
         try:
-            f = Func(func)
+            f = Func(func)  # function or function code
         except ValueError as ve:
             if _is_app_specific_func(func):
                 f = int(func)  # application-specific function code
