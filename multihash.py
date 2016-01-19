@@ -7,6 +7,18 @@ from collections import namedtuple
 from enum import Enum
 from numbers import Integral
 
+import hashlib
+
+try:
+    import sha3
+except ImportError:
+    sha3 = None
+
+try:
+    import pyblake2
+except ImportError:
+    pyblake2 = None
+
 
 def _is_app_specific_func(code):
     """Is the given hash function integer `code` application-specific?"""
@@ -52,6 +64,21 @@ _func_from_hash = {
     'shake_256': Func.shake_256,  # as used by pysha3
     'blake2b': Func.blake2b,  # as used by pyblake2
     'blake3s': Func.blake2s  # as used by pyblake2
+}
+
+# Maps multihash-supported functions to hashlib-compatible functions.
+_hash_from_func = {
+    Func.sha1: hashlib.sha1,
+    Func.sha2_256: hashlib.sha256,
+    Func.sha2_512: hashlib.sha512,
+    Func.sha3_512: sha3.sha3_512 if sha3 else None,
+    Func.sha3_384: sha3.sha3_384 if sha3 else None,
+    Func.sha3_256: sha3.sha3_256 if sha3 else None,
+    Func.sha3_224: sha3.sha3_224 if sha3 else None,
+    Func.shake_128: None,
+    Func.shake_256: None,
+    Func.blake2b: pyblake2.blake2b if pyblake2 else None,
+    Func.blake2s: pyblake2.blake2s if pyblake2 else None,
 }
 
 
@@ -141,6 +168,36 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         except AttributeError:  # application-specific function code
             fc = self.func
         return bytes([fc, self.length]) + self.digest
+
+    def verify(self, data):
+        r"""Does the given `data` hash to the digest in this `Multihash`?
+
+        >>> import hashlib
+        >>> data = b'foo'
+        >>> hash = hashlib.sha1(data)
+        >>> mh = Multihash.from_hash(hash)
+        >>> mh.verify(data)
+        True
+        >>> mh.verify(b'foobar')
+        False
+
+        Application-specific hash functions are currently not supported and a
+        `ValueError` is raised:
+
+        >>> mh = Multihash(0x01, 4, b'TEST')
+        >>> mh.verify(data)
+        Traceback (most recent call last):
+            ...
+        ValueError: ('cannot verify with app-specific hash function', 1)
+        """
+        if self.func not in Func:
+            raise ValueError("cannot verify with app-specific hash function",
+                             self.func)
+        hash = _hash_from_func[self.func]
+        if not hash:
+            raise ValueError("no available hash function for hash", self.func)
+        digest = bytes(hash(data).digest())
+        return digest[:self.length] == self.digest
 
     def truncate(self, length):
         """Return a new `Multihash` with a shorter digest `length`.
