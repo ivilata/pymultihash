@@ -24,7 +24,13 @@ class Func(Enum):
     sha1 = 0x11
     sha2_256 = 0x12
     sha2_512 = 0x13
-    sha3 = 0x14
+    # See jbenet/multihash#12 for new SHA-3 function names and codes.
+    sha3_512 = 0x14
+    sha3_384 = 0x15
+    sha3_256 = 0x16
+    sha3_224 = 0x17
+    shake_128 = 0x18
+    shake_256 = 0x19
     blake2b = 0x40
     blake2s = 0x41
 
@@ -64,7 +70,6 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
     Traceback (most recent call last):
         ...
     ValueError: ('invalid hash function code', 1234)
-
     """
     __slots__ = ()
 
