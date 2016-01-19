@@ -77,7 +77,7 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
     True
 
     Application-specific codes (0x00-0x0f) are also accepted.  Other codes
-    raise `ValueError`:
+    raise a `ValueError`:
 
     >>> mhfc = Multihash(0x01, 4, b'...')
     >>> mhfc.func
@@ -113,7 +113,7 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         True
 
         If there is no matching multihash hash function for the given `hash`,
-        `KeyError` is raised.
+        a `KeyError` is raised.
 
         >>> hash = hashlib.sha224(b'foo')
         >>> mh = Multihash.from_hash(hash)
@@ -140,6 +140,26 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         except AttributeError:  # application-specific function code
             fc = self.func
         return bytes([fc, self.length]) + self.digest
+
+    def truncate(self, length):
+        """Return a new `Multihash` with a shorter digest `length`.
+
+        If the given `length` is greater than the original, a `ValueError`
+        is raised.
+
+        >>> mh1 = Multihash(0x01, 6, b'FOOBAR')
+        >>> mh2 = mh1.truncate(3)
+        >>> mh2 == (0x01, 3, b'FOO')
+        True
+        >>> mh3 = mh1.truncate(10)
+        Traceback (most recent call last):
+            ...
+        ValueError: cannot enlarge the original digest by 4 bytes
+        """
+        if length > self.length:
+            raise ValueError("cannot enlarge the original digest by %d bytes"
+                             % (length - self.length))
+        return self.__class__(self.func, length, self.digest[:length])
 
 
 def decode(mhash):
