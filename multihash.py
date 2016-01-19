@@ -99,7 +99,8 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
                 f = _func_from_name[func]  # function name
             else:
                 raise ValueError("invalid hash function code", func)
-        return super(cls, Multihash).__new__(cls, f, length, digest)
+        return super(cls, Multihash).__new__(
+            cls, f, int(length), bytes(digest))
 
     @classmethod
     def from_hash(self, hash):
