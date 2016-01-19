@@ -24,7 +24,7 @@ class Func(Enum):
     sha1 = 0x11
     sha2_256 = 0x12
     sha2_512 = 0x13
-    # See jbenet/multihash#12 for new SHA-3 function names and codes.
+    # See jbenet/multihash#11 for new SHA-3 function names and codes.
     sha3_512 = 0x14
     sha3_384 = 0x15
     sha3_256 = 0x16
@@ -43,7 +43,7 @@ _func_from_hash = {
     'sha1': Func.sha1,
     'sha256': Func.sha2_256,
     'sha512': Func.sha2_512,
-    # See jbenet/multihash#12 for new SHA-3 function names and codes.
+    # See jbenet/multihash#11 for new SHA-3 function names and codes.
     'sha3_512': Func.sha3_512,  # as used by pysha3
     'sha3_384': Func.sha3_384,  # as used by pysha3
     'sha3_256': Func.sha3_256,  # as used by pysha3
