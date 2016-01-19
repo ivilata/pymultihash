@@ -128,6 +128,19 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         digest = hash.digest()
         return Multihash(func, len(digest), digest)
 
+    def encode(self):
+        r"""Encode into a binary multihash-encoded digest.
+
+        >>> mh = Multihash(0x01, 4, b'TEST')
+        >>> mh.encode()
+        b'\x01\x04TEST'
+        """
+        try:
+            fc = self.func.value
+        except AttributeError:  # application-specific function code
+            fc = self.func
+        return bytes([fc, self.length]) + self.digest
+
 
 def decode(mhash):
     r"""Decode a binary multihash-encoded digest into a `Multihash`.
