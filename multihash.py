@@ -7,18 +7,6 @@ from collections import namedtuple
 from enum import Enum
 from numbers import Integral
 
-import hashlib
-
-try:
-    import sha3
-except ImportError:
-    sha3 = None
-
-try:
-    import pyblake2
-except ImportError:
-    pyblake2 = None
-
 
 def _is_app_specific_func(code):
     """Is the given hash function integer `code` application-specific?"""
@@ -51,27 +39,75 @@ class Func(Enum):
 _func_from_name = dict(Func.__members__)
 _func_from_name.update({f.name.replace('_', '-'): f for f in Func})
 
-# Data of hashlib-compatible hashes.
-_Hash = namedtuple('Hash', 'name new')
-_func_hash = {
-    Func.sha1: _Hash('sha1', hashlib.sha1),
-    Func.sha2_256: _Hash('sha256', hashlib.sha256),
-    Func.sha2_512: _Hash('sha512', hashlib.sha512),
-    Func.sha3_512: _Hash('sha3_512', sha3.sha3_512 if sha3 else None),
-    Func.sha3_384: _Hash('sha3_384', sha3.sha3_384 if sha3 else None),
-    Func.sha3_256: _Hash('sha3_256', sha3.sha3_256 if sha3 else None),
-    Func.sha3_224: _Hash('sha3_224', sha3.sha3_224 if sha3 else None),
-    Func.shake_128: _Hash('shake_128', None),
-    Func.shake_256: _Hash('shake_256', None),
-    Func.blake2b: _Hash('blake2b', pyblake2.blake2b if pyblake2 else None),
-    Func.blake2s: _Hash('blake2s', pyblake2.blake2s if pyblake2 else None),
-}
 
-# Maps hashlib names to multihash-supported functions.
-_func_from_hash = {h.name: f for (f, h) in _func_hash.items()}
+class FuncHash:
+    """Registry of supported hashlib-compatible hashes."""
+    _hash = namedtuple('hash', 'name new')
 
-# Maps multihash-supported functions to hashlib-compatible constructors.
-_hash_from_func = {f: h.new for (f, h) in _func_hash.items()}
+    @classmethod
+    def reset(cls):
+        """Reset the registry to the standard multihash functions."""
+        # Try to import known hashlib-compatible modules.
+        import hashlib as hl
+        try:
+            import sha3 as s3
+        except ImportError:
+            s3 = None
+        try:
+            import pyblake2 as b2
+        except ImportError:
+            b2 = None
+
+        h = cls._hash
+        cls._func_hash = {
+            Func.sha1: h('sha1', hl.sha1),
+            Func.sha2_256: h('sha256', hl.sha256),
+            Func.sha2_512: h('sha512', hl.sha512),
+            Func.sha3_512: h('sha3_512', s3.sha3_512 if s3 else None),
+            Func.sha3_384: h('sha3_384', s3.sha3_384 if s3 else None),
+            Func.sha3_256: h('sha3_256', s3.sha3_256 if s3 else None),
+            Func.sha3_224: h('sha3_224', s3.sha3_224 if s3 else None),
+            Func.shake_128: h('shake_128', None),
+            Func.shake_256: h('shake_256', None),
+            Func.blake2b: h('blake2b', b2.blake2b if b2 else None),
+            Func.blake2s: h('blake2s', b2.blake2s if b2 else None),
+        }
+        assert set(cls._func_hash) == set(Func)
+
+        # Maps hashlib names to multihash-supported functions.
+        cls._func_from_hash = {h.name: f for (f, h) in cls._func_hash.items()}
+
+    @classmethod
+    def func_from_hash(cls, hash):
+        """Return the multihash `Func` for the hashlib-compatible `hash` object.
+
+        If no `Func` is registered for the given hash, a `KeyError` is raised.
+
+        >>> import hashlib
+        >>> h = hashlib.sha256()
+        >>> f = FuncHash.func_from_hash(h)
+        >>> f is Func.sha2_256
+        True
+        """
+        return cls._func_from_hash[hash.name]
+
+    @classmethod
+    def hash_from_func(cls, func):
+        """Return a hashlib-compatible object for the multihash `func`.
+
+        If the `func` is registered but no hashlib-compatible constructor is
+        available for it, `None` is returned.  If the `func` is not
+        registered, a `KeyError` is raised.
+
+        >>> h = FuncHash.hash_from_func(Func.sha2_256)
+        >>> h.name
+        'sha256'
+        """
+        new = cls._func_hash[func].new
+        return new() if new else None
+
+# Initialize the function hash registry.
+FuncHash.reset()
 
 
 class Multihash(namedtuple('Multihash', 'func length digest')):
@@ -142,7 +178,7 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         ValueError: ('no matching multihash function', 'sha224')
         """
         try:
-            func = _func_from_hash[hash.name]
+            func = FuncHash.func_from_hash(hash)
         except KeyError:
             raise ValueError("no matching multihash function", hash.name)
         digest = hash.digest()
@@ -185,10 +221,11 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         if self.func not in Func:
             raise ValueError("cannot verify with app-specific hash function",
                              self.func)
-        hash = _hash_from_func[self.func]
+        hash = FuncHash.hash_from_func(self.func)
         if not hash:
             raise ValueError("no available hash function for hash", self.func)
-        digest = bytes(hash(data).digest())
+        hash.update(data)
+        digest = bytes(hash.digest())
         return digest[:self.length] == self.digest
 
     def truncate(self, length):
