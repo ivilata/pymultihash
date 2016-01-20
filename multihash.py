@@ -51,36 +51,27 @@ class Func(Enum):
 _func_from_name = dict(Func.__members__)
 _func_from_name.update({f.name.replace('_', '-'): f for f in Func})
 
-# Maps hashlib names to multihash-supported functions.
-_func_from_hash = {
-    'sha1': Func.sha1,
-    'sha256': Func.sha2_256,
-    'sha512': Func.sha2_512,
-    # See jbenet/multihash#11 for new SHA-3 function names and codes.
-    'sha3_512': Func.sha3_512,  # as used by pysha3
-    'sha3_384': Func.sha3_384,  # as used by pysha3
-    'sha3_256': Func.sha3_256,  # as used by pysha3
-    'sha3_224': Func.sha3_224,  # as used by pysha3
-    'shake_128': Func.shake_128,  # as used by pysha3
-    'shake_256': Func.shake_256,  # as used by pysha3
-    'blake2b': Func.blake2b,  # as used by pyblake2
-    'blake3s': Func.blake2s  # as used by pyblake2
+# Data of hashlib-compatible hashes.
+_Hash = namedtuple('Hash', 'name new')
+_func_hash = {
+    Func.sha1: _Hash('sha1', hashlib.sha1),
+    Func.sha2_256: _Hash('sha256', hashlib.sha256),
+    Func.sha2_512: _Hash('sha512', hashlib.sha512),
+    Func.sha3_512: _Hash('sha3_512', sha3.sha3_512 if sha3 else None),
+    Func.sha3_384: _Hash('sha3_384', sha3.sha3_384 if sha3 else None),
+    Func.sha3_256: _Hash('sha3_256', sha3.sha3_256 if sha3 else None),
+    Func.sha3_224: _Hash('sha3_224', sha3.sha3_224 if sha3 else None),
+    Func.shake_128: _Hash('shake_128', None),
+    Func.shake_256: _Hash('shake_256', None),
+    Func.blake2b: _Hash('blake2b', pyblake2.blake2b if pyblake2 else None),
+    Func.blake2s: _Hash('blake2s', pyblake2.blake2s if pyblake2 else None),
 }
 
-# Maps multihash-supported functions to hashlib-compatible functions.
-_hash_from_func = {
-    Func.sha1: hashlib.sha1,
-    Func.sha2_256: hashlib.sha256,
-    Func.sha2_512: hashlib.sha512,
-    Func.sha3_512: sha3.sha3_512 if sha3 else None,
-    Func.sha3_384: sha3.sha3_384 if sha3 else None,
-    Func.sha3_256: sha3.sha3_256 if sha3 else None,
-    Func.sha3_224: sha3.sha3_224 if sha3 else None,
-    Func.shake_128: None,
-    Func.shake_256: None,
-    Func.blake2b: pyblake2.blake2b if pyblake2 else None,
-    Func.blake2s: pyblake2.blake2s if pyblake2 else None,
-}
+# Maps hashlib names to multihash-supported functions.
+_func_from_hash = {h.name: f for (f, h) in _func_hash.items()}
+
+# Maps multihash-supported functions to hashlib-compatible constructors.
+_hash_from_func = {f: h.new for (f, h) in _func_hash.items()}
 
 
 class Multihash(namedtuple('Multihash', 'func length digest')):
