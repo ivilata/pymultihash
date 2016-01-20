@@ -28,9 +28,10 @@ def _is_app_specific_func(code):
 class Func(Enum):
     """An enumeration of hash functions supported by multihash.
 
+    The name of each member has its hyphens replaced by underscores.
     The value of each member corresponds to its integer code.
 
-    >>> Func.sha1.value == 0x11
+    >>> Func.sha2_512.value == 0x13
     True
     """
     sha1 = 0x11
