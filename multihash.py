@@ -178,22 +178,23 @@ class Codecs:
     def reset(cls):
         """Reset the registry to the standard codecs."""
         # Try to import codecs mentioned in the hashlib spec.
-        import binascii as ba
-        import base64 as b64
-        try:
-            import base58 as b58
-        except ImportError:
-            b58 = None
+        import binascii
+        import base64
 
         c = cls._codec
         cls._codecs = {
-            'hex': c(ba.b2a_hex, ba.a2b_hex),
-            'base32': c(b64.b32encode, b64.b32decode),
-            'base64': c(b64.b64encode, b64.b64decode)
+            'hex': c(binascii.b2a_hex, binascii.a2b_hex),
+            'base32': c(base64.b32encode, base64.b32decode),
+            'base64': c(base64.b64encode, base64.b64decode)
         }
-        if b58:
+
+        # The spec doesn't have compulsory codes, though.
+        try:
+            import base58
             cls._codecs['base58'] = c(
-                lambda s: bytes(b58.b58encode(s)), b58.b58decode)
+                lambda s: bytes(base58.b58encode(s)), base58.b58decode)
+        except ImportError:
+            pass
 
     @classmethod
     def get_encoder(cls, encoding):
