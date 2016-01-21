@@ -147,6 +147,20 @@ class Codecs:
         """
         return cls._codecs[encoding].encode
 
+    @classmethod
+    def get_decoder(cls, encoding):
+        r"""Return a decoder for the given `encoding`.
+
+        The decoder gets a `bytes` object as argument and returns another
+        decoded `bytes` object.  If the `encoding` is not registered, a
+        `KeyError` is raised.
+
+        >>> decode = Codecs.get_decoder('hex')
+        >>> decode(b'464f4f00')
+        b'FOO\x00'
+        """
+        return cls._codecs[encoding].decode
+
 # Initialize the codec registry.
 Codecs.reset()
 
@@ -301,13 +315,27 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         return self.__class__(self.func, length, self.digest[:length])
 
 
-def decode(mhash):
-    r"""Decode a binary multihash-encoded digest into a `Multihash`.
+def decode(mhash, encoding=None):
+    r"""Decode a multihash-encoded digest into a `Multihash`.
+
+    If `encoding` is `None`, a binary digest is assumed:
 
     >>> mhash = b'\x11\x0a\x0b\xee\xc7\xb5\xea?\x0f\xdb\xc9]'
-    >>> decode(mhash) == (Func.sha1, 10, mhash[2:])
+    >>> mh = decode(mhash)
+    >>> mh == (Func.sha1, 10, mhash[2:])
+    True
+
+    If an `encoding` is specified, it is used to decode the digest
+    before parsing it (see `Codecs` for supported codecs):
+
+    >>> import base64
+    >>> emhash = base64.b64encode(mhash)
+    >>> emh = decode(emhash, 'base64')
+    >>> emh == mh
     True
     """
+    if encoding:
+        mhash = Codecs.get_decoder(encoding)(mhash)
     return Multihash(int(mhash[0]), int(mhash[1]), mhash[2:])
 
 
