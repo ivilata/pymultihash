@@ -332,11 +332,23 @@ def decode(mhash, encoding=None):
     >>> emh = decode(emhash, 'base64')
     >>> emh == mh
     True
+
+    If the digest has an invalid format or contains invalid data, a
+    `ValueError` is raised.
     """
+    mhash = bytes(mhash)
     if encoding:
         mhash = Codecs.get_decoder(encoding)(mhash)
-    # TODO: check lenghts
-    return Multihash(int(mhash[0]), mhash[2:])
+    try:
+        func = mhash[0]
+        length = mhash[1]
+        digest = mhash[2:]
+    except IndexError:
+        raise ValueError("multihash is too short")
+    if length != len(digest):
+        raise ValueError(
+            "multihash length field does not match digest field length")
+    return Multihash(func, digest)
 
 
 def _test():
