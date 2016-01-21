@@ -110,6 +110,47 @@ class FuncHash:
 FuncHash.reset()
 
 
+class Codecs:
+    """Registry of supported codecs."""
+    _codec = namedtuple('codec', 'encode decode')
+
+    @classmethod
+    def reset(cls):
+        """Reset the registry to the standard codecs."""
+        # Try to import codecs mentioned in the hashlib spec.
+        import binascii as ba
+        import base64 as b64
+        try:
+            import base58 as b58
+        except ImportError:
+            b58 = None
+
+        c = cls._codec
+        cls._codecs = {
+            'hex': c(ba.b2a_hex, ba.a2b_hex),
+            'base32': c(b64.b32encode, b64.b32decode),
+            'base58': c(lambda s: bytes(b58.b58encode(s)), b58.b58decode),
+            'base64': c(b64.b64encode, b64.b64decode)
+        }
+
+    @classmethod
+    def get_encoder(cls, encoding):
+        r"""Return an encoder for the given `encoding`.
+
+        The encoder gets a `bytes` object as argument and returns another
+        encoded `bytes` object.  If the `encoding` is not registered, a
+        `KeyError` is raised.
+
+        >>> encode = Codecs.get_encoder('hex')
+        >>> encode(b'FOO\x00')
+        b'464f4f00'
+        """
+        return cls._codecs[encoding].encode
+
+# Initialize the codec registry.
+Codecs.reset()
+
+
 class Multihash(namedtuple('Multihash', 'func length digest')):
     """A named tuple representing multihash function, length and digest.
 
@@ -184,18 +225,29 @@ class Multihash(namedtuple('Multihash', 'func length digest')):
         digest = hash.digest()
         return Multihash(func, len(digest), digest)
 
-    def encode(self):
-        r"""Encode into a binary multihash-encoded digest.
+    def encode(self, encoding=None):
+        r"""Encode into a multihash-encoded digest.
+
+        If `encoding` is `None`, a binary digest is produced:
 
         >>> mh = Multihash(0x01, 4, b'TEST')
         >>> mh.encode()
         b'\x01\x04TEST'
+
+        If an `encoding` is specified, it is used to encode the binary digest
+        before returning it (see `Codecs` for supported codecs):
+
+        >>> mh.encode('base64')
+        b'AQRURVNU'
         """
         try:
             fc = self.func.value
         except AttributeError:  # application-specific function code
             fc = self.func
-        return bytes([fc, self.length]) + self.digest
+        mhash = bytes([fc, self.length]) + self.digest
+        if encoding:
+            mhash = Codecs.get_encoder(encoding)(mhash)
+        return mhash
 
     def verify(self, data):
         r"""Does the given `data` hash to the digest in this `Multihash`?
