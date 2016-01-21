@@ -276,20 +276,18 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         """Create a `Multihash` from a hashlib-compatible `hash` object.
 
         >>> import hashlib
-        >>> hash = hashlib.sha1(b'foo')
+        >>> data = b'foo'
+        >>> hash = hashlib.sha1(data)
         >>> digest = hash.digest()
         >>> mh = Multihash.from_hash(hash)
         >>> mh == (Func.sha1, digest)
         True
 
-        If there is no matching multihash hash function for the given `hash`,
-        a `KeyError` is raised.
+        Application-specific hash functions are also supported (see
+        `FuncHash`).
 
-        >>> hash = hashlib.sha224(b'foo')
-        >>> mh = Multihash.from_hash(hash)
-        Traceback (most recent call last):
-            ...
-        ValueError: ('no matching multihash function', 'sha224')
+        If there is no matching multihash hash function for the given `hash`,
+        a `ValueError` is raised.
         """
         try:
             func = FuncHash.func_from_hash(hash)
@@ -334,18 +332,9 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         >>> mh.verify(b'foobar')
         False
 
-        Application-specific hash functions are currently not supported and a
-        `ValueError` is raised:
-
-        >>> mh = Multihash(0x01, b'TEST')
-        >>> mh.verify(data)
-        Traceback (most recent call last):
-            ...
-        ValueError: ('cannot verify with app-specific hash function', 1)
+        Application-specific hash functions are also supported (see
+        `FuncHash`).
         """
-        if self.func not in Func:
-            raise ValueError("cannot verify with app-specific hash function",
-                             self.func)
         hash = FuncHash.hash_from_func(self.func)
         if not hash:
             raise ValueError("no available hash function for hash", self.func)
