@@ -78,6 +78,66 @@ class FuncHash:
         cls._func_from_hash = {h.name: f for (f, h) in cls._func_hash.items()}
 
     @classmethod
+    def get_funcs(cls):
+        """Return a set of registered functions.
+
+        Standard multihash functions are represented as members of `Func`,
+        while application-specific functions are integers.
+
+        >>> FuncHash.reset()
+        >>> FuncHash.get_funcs() == set(Func)
+        True
+        """
+        return {func for func in cls._func_hash}
+
+    @classmethod
+    def register(cls, code, name, new):
+        """Add an application-specific function to the registry.
+
+        Registers a function with the given `code` (an integer) and `name` (a
+        string) to be used with the given hashlib-compatible `new`
+        constructor.  Existing functions are replaced.  Registering a function
+        with a `code` not in the application-specific range (0x00-0xff) raises
+        a `ValueError`.
+
+        >>> import hashlib
+        >>> FuncHash.register(0x03, 'md5', hashlib.md5)
+        >>> FuncHash.hash_from_func(0x03).name == 'md5'
+        True
+        >>> FuncHash.reset()
+        >>> 0x03 in FuncHash.get_funcs()
+        False
+        """
+        if not _is_app_specific_func(code):
+            raise ValueError(
+                "only application-specific functions can be registered")
+        cls._func_hash[code] = cls._hash(name, new)
+        cls._func_from_hash[name] = code
+
+    @classmethod
+    def unregister(cls, code):
+        """Remove an application-specific function from the registry.
+
+        Unregisters the function with the given `code` (an integer).  If the
+        function is not registered, a `KeyError` is raised.  Unregistering a
+        function with a `code` not in the application-specific range
+        (0x00-0xff) raises a `ValueError`.
+
+        >>> import hashlib
+        >>> FuncHash.register(0x03, 'md5', hashlib.md5)
+        >>> 0x03 in FuncHash.get_funcs()
+        True
+        >>> FuncHash.unregister(0x03)
+        >>> 0x03 in FuncHash.get_funcs()
+        False
+        """
+        if code in Func:
+            raise ValueError(
+                "only application-specific functions can be unregistered")
+        hash = cls._func_hash.pop(code)
+        del cls._func_from_hash[hash.name]
+
+    @classmethod
     def func_from_hash(cls, hash):
         """Return the multihash `Func` for the hashlib-compatible `hash` object.
 
