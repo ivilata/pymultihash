@@ -197,6 +197,51 @@ class Codecs:
             pass
 
     @classmethod
+    def get_codecs(cls):
+        """Return a set of registered codec names.
+
+        >>> Codecs.reset()
+        >>> 'base64' in Codecs.get_codecs()
+        True
+        """
+        return {codec for codec in cls._codecs}
+
+    @classmethod
+    def register(cls, name, encode, decode):
+        """Add a codec to the registry.
+
+        Registers a codec with the given `name` (a string) to be used with the
+        given `encode` and `decode` functions, which take a `bytes` object and
+        return another one.  Existing codecs are replaced.
+
+        >>> import binascii
+        >>> Codecs.register('uu', binascii.b2a_uu, binascii.a2b_uu)
+        >>> Codecs.get_decoder('uu') is binascii.a2b_uu
+        True
+        >>> Codecs.reset()
+        >>> 'uu' in Codecs.get_codecs()
+        False
+        """
+        cls._codecs[name] = cls._codec(encode, decode)
+
+    @classmethod
+    def unregister(cls, name):
+        """Remove a codec from the registry.
+
+        Unregisters the codec with the given `name` (a string).  If the codec
+        is not registered, a `KeyError` is raised.
+
+        >>> import binascii
+        >>> Codecs.register('uu', binascii.b2a_uu, binascii.a2b_uu)
+        >>> 'uu' in Codecs.get_codecs()
+        True
+        >>> Codecs.unregister('uu')
+        >>> 'uu' in Codecs.get_codecs()
+        False
+        """
+        del cls._codecs[name]
+
+    @classmethod
     def get_encoder(cls, encoding):
         r"""Return an encoder for the given `encoding`.
 
