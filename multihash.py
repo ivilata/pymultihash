@@ -306,11 +306,13 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         >>> mh.encode()
         b'\x01\x04TEST'
 
-        If an `encoding` is specified, it is used to encode the binary digest
-        before returning it (see `Codecs` for supported codecs):
+        If the name of an `encoding` is specified, it is used to encode the
+        binary digest before returning it (see `Codecs` for supported codecs):
 
         >>> mh.encode('base64')
         b'AQRURVNU'
+
+        If the `encoding` is not available, a `KeyError` is raised.
         """
         try:
             fc = self.func.value
@@ -374,7 +376,7 @@ def decode(mhash, encoding=None):
     >>> mh == (Func.sha1, mhash[2:])
     True
 
-    If an `encoding` is specified, it is used to decode the digest
+    If the name of an `encoding` is specified, it is used to decode the digest
     before parsing it (see `Codecs` for supported codecs):
 
     >>> import base64
@@ -383,8 +385,8 @@ def decode(mhash, encoding=None):
     >>> emh == mh
     True
 
-    If the digest has an invalid format or contains invalid data, a
-    `ValueError` is raised.
+    If the `encoding` is not available, a `KeyError` is raised.  If the digest
+    has an invalid format or contains invalid data, a `ValueError` is raised.
     """
     mhash = bytes(mhash)
     if encoding:
