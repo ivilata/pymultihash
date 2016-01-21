@@ -189,9 +189,11 @@ class Codecs:
         cls._codecs = {
             'hex': c(ba.b2a_hex, ba.a2b_hex),
             'base32': c(b64.b32encode, b64.b32decode),
-            'base58': c(lambda s: bytes(b58.b58encode(s)), b58.b58decode),
             'base64': c(b64.b64encode, b64.b64decode)
         }
+        if b58:
+            cls._codecs['base58'] = c(
+                lambda s: bytes(b58.b58encode(s)), b58.b58decode)
 
     @classmethod
     def get_encoder(cls, encoding):
