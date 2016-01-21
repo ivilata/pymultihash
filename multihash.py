@@ -276,7 +276,7 @@ Codecs.reset()
 class Multihash(namedtuple('Multihash', 'func digest')):
     """A named tuple representing a multihash function and digest.
 
-    The hash function is a `Func` member:
+    The hash function is usually a `Func` member.
 
     >>> mh = Multihash(Func.sha1, b'BINARY_DIGEST')
     >>> mh == (Func.sha1, b'BINARY_DIGEST')
@@ -284,8 +284,8 @@ class Multihash(namedtuple('Multihash', 'func digest')):
     >>> mh == (mh.func, mh.digest)
     True
 
-    Although it can also be its integer value (the function code) or its
-    string name (the function name, with either underscore or hyphen):
+    However it can also be its integer value (the function code) or its string
+    name (the function name, with either underscore or hyphen).
 
     >>> mhfc = Multihash(Func.sha1.value, mh.digest)
     >>> mhfc == mh
@@ -295,7 +295,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
     True
 
     Application-specific codes (0x00-0x0f) are also accepted.  Other codes
-    raise a `ValueError`:
+    raise a `ValueError`.
 
     >>> mhfc = Multihash(0x01, b'...')
     >>> mhfc.func
@@ -355,7 +355,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         b'\x01\x04TEST'
 
         If the name of an `encoding` is specified, it is used to encode the
-        binary digest before returning it (see `Codecs` for supported codecs):
+        binary digest before returning it (see `Codecs` for supported codecs).
 
         >>> mh.encode('base64')
         b'AQRURVNU'
@@ -417,7 +417,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
 def decode(mhash, encoding=None):
     r"""Decode a multihash-encoded digest into a `Multihash`.
 
-    If `encoding` is `None`, a binary digest is assumed:
+    If `encoding` is `None`, a binary digest is assumed.
 
     >>> mhash = b'\x11\x0a\x0b\xee\xc7\xb5\xea?\x0f\xdb\xc9]'
     >>> mh = decode(mhash)
@@ -425,7 +425,7 @@ def decode(mhash, encoding=None):
     True
 
     If the name of an `encoding` is specified, it is used to decode the digest
-    before parsing it (see `Codecs` for supported codecs):
+    before parsing it (see `Codecs` for supported codecs).
 
     >>> import base64
     >>> emhash = base64.b64encode(mhash)
