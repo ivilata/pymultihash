@@ -268,7 +268,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
             elif func in _func_from_name:
                 f = _func_from_name[func]  # function name
             else:
-                raise ValueError("invalid hash function code", func)
+                raise ValueError("invalid hash function code", func) from ve
         return super(cls, Multihash).__new__(cls, f, bytes(digest))
 
     @classmethod
@@ -291,8 +291,9 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         """
         try:
             func = FuncHash.func_from_hash(hash)
-        except KeyError:
-            raise ValueError("no matching multihash function", hash.name)
+        except KeyError as ke:
+            raise ValueError(
+                "no matching multihash function", hash.name) from ke
         digest = hash.digest()
         return Multihash(func, digest)
 
@@ -392,8 +393,8 @@ def decode(mhash, encoding=None):
         func = mhash[0]
         length = mhash[1]
         digest = mhash[2:]
-    except IndexError:
-        raise ValueError("multihash is too short")
+    except IndexError as ie:
+        raise ValueError("multihash is too short") from ie
     if length != len(digest):
         raise ValueError(
             "multihash length field does not match digest field length")
