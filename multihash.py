@@ -13,11 +13,52 @@ of data, and encode itself to a byte string in the binary format described in
 the specification.  The `decode()` function can be used for the inverse
 operation, i.e. converting a byte string into a `Multihash` object.
 
+.. _multihash: https://github.com/jbenet/multihash
+
+Basic usage
+===========
+
+One of the basic cases happens when you have a multihash-encoded digest like:
+
+>>> mhash = b'EiAsJrRraP/Gj/mbRTwdMEE0E0ItcGSDv6D5il6IYmbnrg=='
+
+You know beforehand that the multihash is Base64-encoded.  You also have some
+data and you want to check if it matches that digest:
+
+>>> data = b'foo'
+
+To perform this check, you may first *decode* the multihash (i.e. parse it)
+into a `Multihash` object, which provides the ``verify()`` method to validate
+the given byte string against the encoded digest:
+
+>>> import multihash
+>>> mh = multihash.decode(mhash, 'base64')
+>>> mh.verify(data)
+True
+
+Please note that we needed to specify that the multihash is Base64-encoded,
+otherwise binary encoding is assumed.  The verification internally uses a
+hashlib-compatible implementation of the function indicated by the encoded
+multihash to check the data.  Read about codecs and hash functions
+further below.
+
+The function in a `Multihash` object is stored as a member of the `Func`
+enumeration, which contains one member per function listed in the `multihash`_
+specification.  The name of a `Func` member is the name of that function in
+the specification (with hyphens replaced by underscores), and its value is the
+function code.  The `Multihash` object also contains the binary string with
+the raw hash digest.
+
+>>> print(mh)  # doctest: +ELLIPSIS
+Multihash(func=<Func.sha2_256: 18>, digest=b'...')
+>>> hex(mh.func)
+'0x12'
+>>> len(mh.digest)
+32
+
 .. functions
 
 .. codecs
-
-.. _multihash: https://github.com/jbenet/multihash
 
 """
 
