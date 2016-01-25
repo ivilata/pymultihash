@@ -190,9 +190,10 @@ class FuncHash:
 
         Registers a function with the given `code` (an integer) and `name` (a
         string) to be used with the given hashlib-compatible `new`
-        constructor.  Existing functions are replaced.  Registering a function
-        with a `code` not in the application-specific range (0x00-0xff) raises
-        a `ValueError`.
+        constructor.  An existing application-specific function with the same
+        code is replaced.  Registering a function with a `code` not in the
+        application-specific range (0x00-0xff) or with the a `name` already
+        registered with a different code raises a `ValueError`.
 
         >>> import hashlib
         >>> FuncHash.register(0x03, 'md5', hashlib.md5)
@@ -205,6 +206,13 @@ class FuncHash:
         if not _is_app_specific_func(code):
             raise ValueError(
                 "only application-specific functions can be registered")
+        existing_code = cls._func_from_hash.get(name, code)
+        if existing_code != code:
+            raise ValueError(
+                "function name is already registered with a different code",
+                existing_code)
+        if code in cls._func_hash:
+            cls.unregister(code)  # ensure no orphan entries
         cls._func_hash[code] = cls._hash(name, new)
         cls._func_from_hash[name] = code
 
@@ -308,7 +316,7 @@ class Codecs:
 
         Registers a codec with the given `name` (a string) to be used with the
         given `encode` and `decode` functions, which take a `bytes` object and
-        return another one.  Existing codecs are replaced.
+        return another one.  An existing codec is replaced.
 
         >>> import binascii
         >>> Codecs.register('uu', binascii.b2a_uu, binascii.a2b_uu)
