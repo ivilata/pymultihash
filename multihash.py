@@ -45,6 +45,7 @@ class Func(Enum):
     sha2_512 = 0x13
     # See jbenet/multihash#11 for new SHA-3 function names and codes.
     sha3_512 = 0x14
+    sha3 = sha3_512  # deprecated, for backwards compatibility
     sha3_384 = 0x15
     sha3_256 = 0x16
     sha3_224 = 0x17
