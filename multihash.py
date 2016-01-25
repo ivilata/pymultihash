@@ -61,6 +61,9 @@ _func_from_name.update({f.name.replace('_', '-'): f for f in Func})
 
 class FuncHash:
     """Registry of supported hashlib-compatible hashes."""
+
+    # Hashlib compatibility data for a hash: hash name (e.g. ``sha256`` for
+    # SHA-256, ``sha2-256`` in multihash), and the corresponding constructor.
     _hash = namedtuple('hash', 'name new')
 
     @classmethod
@@ -191,6 +194,8 @@ FuncHash.reset()
 
 class Codecs:
     """Registry of supported codecs."""
+
+    # Codec data: encoding and decoding functions (both from bytes to bytes).
     _codec = namedtuple('codec', 'encode decode')
 
     @classmethod
