@@ -51,7 +51,7 @@ the raw hash digest.
 
 >>> print(mh)  # doctest: +ELLIPSIS
 Multihash(func=<Func.sha2_256: 18>, digest=b'...')
->>> hex(mh.func)
+>>> hex(mh.func.value)
 '0x12'
 >>> len(mh.digest)
 32
