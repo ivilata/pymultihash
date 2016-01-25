@@ -18,6 +18,9 @@ operation, i.e. converting a byte string into a `Multihash` object.
 Basic usage
 ===========
 
+Decoding
+--------
+
 One of the basic cases happens when you have a multihash-encoded digest like:
 
 >>> mhash = b'EiAsJrRraP/Gj/mbRTwdMEE0E0ItcGSDv6D5il6IYmbnrg=='
@@ -55,6 +58,34 @@ Multihash(func=<Func.sha2_256: 18>, digest=b'...')
 '0x12'
 >>> len(mh.digest)
 32
+
+Encoding
+--------
+
+Now imagine that you have some data and you want to create a multihash out of
+it.  First you must create a `Multihash` instance with the desired function
+and the computed binary digest.  If you already know them, you may create the
+`Multihash` instance directly:
+
+>>> mh = multihash.Multihash(multihash.Func.sha3_512, b'...')
+
+You may also use the function code (``0x13``) or its name (``'sha2-512'``)
+instead of the `Func` member.  However, you are also able to create
+`Multihash` instances from hashlib-compatible objects:
+
+>>> import hashlib
+>>> hash = hashlib.sha1(data)
+>>> mh = Multihash.from_hash(hash)
+>>> print(mh)  # doctest: +ELLIPSIS
+Multihash(func=<Func.sha1: 17>, digest=b'...')
+
+In any case, getting the multihash-encoded digest is very simple:
+
+>>> mh.encode('base64')
+b'ERQL7se16j8P28ldDdR/PFvCddqKMw=='
+
+As before, an encoding (Base64) was specified to avoid getting the binary
+version of the multihash.
 
 .. functions
 
