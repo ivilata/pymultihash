@@ -141,8 +141,8 @@ _func_from_name = dict(Func.__members__)
 _func_from_name.update({f.name.replace('_', '-'): f for f in Func})
 
 
-class FuncHash:
-    """Registry of supported hashlib-compatible hashes."""
+class FuncReg:
+    """Registry of hash supported functions."""
 
     # Hashlib compatibility data for a hash: hash name (e.g. ``sha256`` for
     # SHA-256, ``sha2-256`` in multihash), and the corresponding constructor.
@@ -190,10 +190,10 @@ class FuncHash:
         multihash functions and an integer code for application-specific ones.
         If no matching function is registered, a `KeyError` is raised.
 
-        >>> fm = FuncHash.get(Func.sha2_256)
-        >>> fnu = FuncHash.get('sha2_256')
-        >>> fnh = FuncHash.get('sha2-256')
-        >>> fc = FuncHash.get(0x12)
+        >>> fm = FuncReg.get(Func.sha2_256)
+        >>> fnu = FuncReg.get('sha2_256')
+        >>> fnh = FuncReg.get('sha2-256')
+        >>> fc = FuncReg.get(0x12)
         >>> fm == fnu == fnh == fc
         True
         """
@@ -215,8 +215,8 @@ class FuncHash:
         Standard multihash functions are represented as members of `Func`,
         while application-specific functions are integers.
 
-        >>> FuncHash.reset()
-        >>> FuncHash.get_funcs() == set(Func)
+        >>> FuncReg.reset()
+        >>> FuncReg.get_funcs() == set(Func)
         True
         """
         return {func for func in cls._func_hash}
@@ -229,15 +229,15 @@ class FuncHash:
         string) to be used with the given hashlib-compatible `new`
         constructor.  An existing application-specific function with the same
         code is replaced.  Registering a function with a `code` not in the
-        application-specific range (0x00-0xff) or with the a `name` already
-        registered with a different code raises a `ValueError`.
+        application-specific range (0x00-0xff) or with a hashlib-compatible
+        `name` already registered with a different code raises a `ValueError`.
 
         >>> import hashlib
-        >>> FuncHash.register(0x03, 'md5', hashlib.md5)
-        >>> FuncHash.hash_from_func(0x03).name == 'md5'
+        >>> FuncReg.register(0x03, 'md5', hashlib.md5)
+        >>> FuncReg.hash_from_func(0x03).name == 'md5'
         True
-        >>> FuncHash.reset()
-        >>> 0x03 in FuncHash.get_funcs()
+        >>> FuncReg.reset()
+        >>> 0x03 in FuncReg.get_funcs()
         False
         """
         if not _is_app_specific_func(code):
@@ -263,11 +263,11 @@ class FuncHash:
         (0x00-0xff) raises a `ValueError`.
 
         >>> import hashlib
-        >>> FuncHash.register(0x03, 'md5', hashlib.md5)
-        >>> 0x03 in FuncHash.get_funcs()
+        >>> FuncReg.register(0x03, 'md5', hashlib.md5)
+        >>> 0x03 in FuncReg.get_funcs()
         True
-        >>> FuncHash.unregister(0x03)
-        >>> 0x03 in FuncHash.get_funcs()
+        >>> FuncReg.unregister(0x03)
+        >>> 0x03 in FuncReg.get_funcs()
         False
         """
         if code in Func:
@@ -284,7 +284,7 @@ class FuncHash:
 
         >>> import hashlib
         >>> h = hashlib.sha256()
-        >>> f = FuncHash.func_from_hash(h)
+        >>> f = FuncReg.func_from_hash(h)
         >>> f is Func.sha2_256
         True
         """
@@ -298,7 +298,7 @@ class FuncHash:
         available for it, `None` is returned.  If the `func` is not
         registered, a `KeyError` is raised.
 
-        >>> h = FuncHash.hash_from_func(Func.sha2_256)
+        >>> h = FuncReg.hash_from_func(Func.sha2_256)
         >>> h.name
         'sha256'
         """
@@ -306,13 +306,13 @@ class FuncHash:
         return new() if new else None
 
 # Initialize the function hash registry.
-FuncHash.reset()
+FuncReg.reset()
 
 
 def _do_digest(data, func):
     """Return the binary digest of `data` with the given `func`."""
-    func = FuncHash.get(func)
-    hash = FuncHash.hash_from_func(func)
+    func = FuncReg.get(func)
+    hash = FuncReg.hash_from_func(func)
     if not hash:
         raise ValueError("no available hash function for hash", func)
     hash.update(data)
@@ -460,7 +460,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
 
     def __new__(cls, func, digest):
         try:
-            func = FuncHash.get(func)
+            func = FuncReg.get(func)
         except KeyError:
             if _is_app_specific_func(func):
                 # Application-specific function codes
@@ -484,13 +484,13 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         True
 
         Application-specific hash functions are also supported (see
-        `FuncHash`).
+        `FuncReg`).
 
         If there is no matching multihash hash function for the given `hash`,
         a `ValueError` is raised.
         """
         try:
-            func = FuncHash.func_from_hash(hash)
+            func = FuncReg.func_from_hash(hash)
         except KeyError as ke:
             raise ValueError(
                 "no matching multihash function", hash.name) from ke
@@ -536,7 +536,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         False
 
         Application-specific hash functions are also supported (see
-        `FuncHash`).
+        `FuncReg`).
         """
         digest = _do_digest(data, self.func)
         return digest[:len(self.digest)] == self.digest
@@ -566,7 +566,7 @@ def digest(data, func):
     """Hash the given `data` into a new `Multihash`.
 
     The given hash function `func` is used to perform the hashing.  It must be
-    a registered hash function (see `FuncHash`).
+    a registered hash function (see `FuncReg`).
 
     >>> data = b'foo'
     >>> mh = digest(data, Func.sha1)
