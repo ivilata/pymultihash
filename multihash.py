@@ -319,7 +319,7 @@ def _do_digest(data, func):
     return bytes(hash.digest())
 
 
-class Codecs:
+class CodecReg:
     """Registry of supported codecs."""
 
     # Codec data: encoding and decoding functions (both from bytes to bytes).
@@ -351,8 +351,8 @@ class Codecs:
     def get_codecs(cls):
         """Return a set of registered codec names.
 
-        >>> Codecs.reset()
-        >>> 'base64' in Codecs.get_codecs()
+        >>> CodecReg.reset()
+        >>> 'base64' in CodecReg.get_codecs()
         True
         """
         return {codec for codec in cls._codecs}
@@ -366,11 +366,11 @@ class Codecs:
         return another one.  An existing codec is replaced.
 
         >>> import binascii
-        >>> Codecs.register('uu', binascii.b2a_uu, binascii.a2b_uu)
-        >>> Codecs.get_decoder('uu') is binascii.a2b_uu
+        >>> CodecReg.register('uu', binascii.b2a_uu, binascii.a2b_uu)
+        >>> CodecReg.get_decoder('uu') is binascii.a2b_uu
         True
-        >>> Codecs.reset()
-        >>> 'uu' in Codecs.get_codecs()
+        >>> CodecReg.reset()
+        >>> 'uu' in CodecReg.get_codecs()
         False
         """
         cls._codecs[name] = cls._codec(encode, decode)
@@ -383,11 +383,11 @@ class Codecs:
         is not registered, a `KeyError` is raised.
 
         >>> import binascii
-        >>> Codecs.register('uu', binascii.b2a_uu, binascii.a2b_uu)
-        >>> 'uu' in Codecs.get_codecs()
+        >>> CodecReg.register('uu', binascii.b2a_uu, binascii.a2b_uu)
+        >>> 'uu' in CodecReg.get_codecs()
         True
-        >>> Codecs.unregister('uu')
-        >>> 'uu' in Codecs.get_codecs()
+        >>> CodecReg.unregister('uu')
+        >>> 'uu' in CodecReg.get_codecs()
         False
         """
         del cls._codecs[name]
@@ -400,7 +400,7 @@ class Codecs:
         encoded `bytes` object.  If the `encoding` is not registered, a
         `KeyError` is raised.
 
-        >>> encode = Codecs.get_encoder('hex')
+        >>> encode = CodecReg.get_encoder('hex')
         >>> encode(b'FOO\x00')
         b'464f4f00'
         """
@@ -414,14 +414,14 @@ class Codecs:
         decoded `bytes` object.  If the `encoding` is not registered, a
         `KeyError` is raised.
 
-        >>> decode = Codecs.get_decoder('hex')
+        >>> decode = CodecReg.get_decoder('hex')
         >>> decode(b'464f4f00')
         b'FOO\x00'
         """
         return cls._codecs[encoding].decode
 
 # Initialize the codec registry.
-Codecs.reset()
+CodecReg.reset()
 
 
 class Multihash(namedtuple('Multihash', 'func digest')):
@@ -507,7 +507,8 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         b'\x01\x04TEST'
 
         If the name of an `encoding` is specified, it is used to encode the
-        binary digest before returning it (see `Codecs` for supported codecs).
+        binary digest before returning it (see `CodecReg` for supported
+        codecs).
 
         >>> mh.encode('base64')
         b'AQRURVNU'
@@ -520,7 +521,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
             fc = self.func
         mhash = bytes([fc, len(self.digest)]) + self.digest
         if encoding:
-            mhash = Codecs.get_encoder(encoding)(mhash)
+            mhash = CodecReg.get_encoder(encoding)(mhash)
         return mhash
 
     def verify(self, data):
@@ -588,7 +589,7 @@ def decode(mhash, encoding=None):
     True
 
     If the name of an `encoding` is specified, it is used to decode the digest
-    before parsing it (see `Codecs` for supported codecs).
+    before parsing it (see `CodecReg` for supported codecs).
 
     >>> import base64
     >>> emhash = base64.b64encode(mhash)
@@ -601,7 +602,7 @@ def decode(mhash, encoding=None):
     """
     mhash = bytes(mhash)
     if encoding:
-        mhash = Codecs.get_decoder(encoding)(mhash)
+        mhash = CodecReg.get_decoder(encoding)(mhash)
     try:
         func = mhash[0]
         length = mhash[1]
