@@ -52,7 +52,7 @@ the specification (with hyphens replaced by underscores), and its value is the
 function code.  The `Multihash` object also contains the binary string with
 the raw hash digest.
 
->>> print(mh)  # doctest: +ELLIPSIS
+>>> mh  # doctest: +ELLIPSIS
 Multihash(func=<Func.sha2_256: 18>, digest=b'...')
 >>> hex(mh.func.value)
 '0x12'
@@ -68,7 +68,7 @@ and the computed binary digest.  If you already know them, you may create the
 `Multihash` instance directly:
 
 >>> mh = multihash.Multihash(multihash.Func.sha2_512, b'...')
->>> print(mh)  # doctest: +ELLIPSIS
+>>> mh  # doctest: +ELLIPSIS
 Multihash(func=<Func.sha2_512: 19>, digest=b'...')
 
 Instead of the `Func` member, you may use the function code (``19`` or
@@ -78,7 +78,7 @@ Instead of the `Func` member, you may use the function code (``19`` or
 >>> import hashlib
 >>> hash = hashlib.sha1(data)
 >>> mh = Multihash.from_hash(hash)
->>> print(mh)  # doctest: +ELLIPSIS
+>>> mh  # doctest: +ELLIPSIS
 Multihash(func=<Func.sha1: 17>, digest=b'...')
 
 Or you may get a `Multihash` instance with the `digest()` function, which
@@ -86,7 +86,7 @@ internally uses a hashlib-compatible implementation of the indicated function
 to do the job for you:
 
 >>> mh = multihash.digest(data, multihash.Func.sha1)
->>> print(mh)  # doctest: +ELLIPSIS
+>>> mh  # doctest: +ELLIPSIS
 Multihash(func=<Func.sha1: 17>, digest=b'...')
 
 In any case, getting the multihash-encoded digest is very simple:
@@ -103,6 +103,7 @@ version of the multihash.
 
 """
 
+from base64 import b64encode
 from collections import namedtuple
 from enum import Enum
 from numbers import Integral
@@ -497,6 +498,27 @@ class Multihash(namedtuple('Multihash', 'func digest')):
                 "no matching multihash function", hash.name) from ke
         digest = hash.digest()
         return Multihash(func, digest)
+
+    def __str__(self):
+        """Return a compact string representation of the multihash.
+
+        The representation includes the name of the standard multihash
+        function or the hexadecimal code of the application-specific one, and
+        a Base64-encoded version of the raw digest.  This is *not* the
+        complete multihash-encoded digest that can be obtained with
+        `Multihash.encode()`.
+
+        >>> mh = Multihash(Func.sha1, b'TEST')
+        >>> print(mh)
+        Multihash(sha1, b64:VEVTVA==)
+        >>> mh = Multihash(0x01, b'TEST')
+        >>> print(mh)
+        Multihash(0x1, b64:VEVTVA==)
+        """
+        return 'Multihash({func}, b64:{digest})'.format(
+            func=self.func.name if self.func in Func else hex(self.func),
+            digest=b64encode(self.digest).decode()
+        )
 
     def encode(self, encoding=None):
         r"""Encode into a multihash-encoded digest.
