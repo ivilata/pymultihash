@@ -59,6 +59,12 @@ Multihash(func=<Func.sha2_256: 18>, digest=b'...')
 >>> len(mh.digest)
 32
 
+The short representation of a `Multihash` object only shows the function name
+(or its code), and the Base64-encoded version of the raw hash digest:
+
+>>> print(mh)
+Multihash(sha2_256, b64:LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564=)
+
 Encoding
 --------
 
@@ -68,26 +74,26 @@ and the computed binary digest.  If you already know them, you may create the
 `Multihash` instance directly:
 
 >>> mh = multihash.Multihash(multihash.Func.sha2_512, b'...')
->>> mh  # doctest: +ELLIPSIS
-Multihash(func=<Func.sha2_512: 19>, digest=b'...')
+>>> print(mh)  # doctest: +ELLIPSIS
+Multihash(sha2_512, b64:...)
 
-Instead of the `Func` member, you may use the function code (``19`` or
-``0x13``) or its name (``'sha2-512'`` or ``'sha2_512'``).  You may also create
+Instead of the `Func` member, you may use the function name (``'sha2-512'`` or
+``'sha2_512'``) or its code (``19`` or ``0x13``).  You may also create
 `Multihash` instances from hashlib-compatible objects:
 
 >>> import hashlib
 >>> hash = hashlib.sha1(data)
 >>> mh = Multihash.from_hash(hash)
->>> mh  # doctest: +ELLIPSIS
-Multihash(func=<Func.sha1: 17>, digest=b'...')
+>>> print(mh)  # doctest: +ELLIPSIS
+Multihash(sha1, b64:...)
 
 Or you may get a `Multihash` instance with the `digest()` function, which
 internally uses a hashlib-compatible implementation of the indicated function
 to do the job for you:
 
 >>> mh = multihash.digest(data, multihash.Func.sha1)
->>> mh  # doctest: +ELLIPSIS
-Multihash(func=<Func.sha1: 17>, digest=b'...')
+>>> print(mh)  # doctest: +ELLIPSIS
+Multihash(sha1, b64:...)
 
 In any case, getting the multihash-encoded digest is very simple:
 
