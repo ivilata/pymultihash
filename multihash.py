@@ -182,6 +182,33 @@ class FuncHash:
         cls._func_from_hash = {h.name: f for (f, h) in cls._func_hash.items()}
 
     @classmethod
+    def get(cls, func_hint):
+        """Return a registered hash function matching the given hint.
+
+        The hint may be a `Func` member, a function name (with hyphens or
+        underscores), or its code.  A `Func` member is returned for standard
+        multihash functions and an integer code for application-specific ones.
+        If no matching function is registered, a `KeyError` is raised.
+
+        >>> fm = FuncHash.get(Func.sha2_256)
+        >>> fnu = FuncHash.get('sha2_256')
+        >>> fnh = FuncHash.get('sha2-256')
+        >>> fc = FuncHash.get(0x12)
+        >>> fm == fnu == fnh == fc
+        True
+        """
+        if func_hint in cls._func_hash:
+            return func_hint  # `Func` member or registered app-specific code
+        if func_hint in _func_from_name:
+            return _func_from_name[func_hint]  # `Func` member name
+        try:
+            return Func(func_hint)  # `Func` member value
+        except ValueError as ve:
+            # Looking up application-specific functions by name
+            # is not yet supported.
+            raise KeyError("unknown hash function", func_hint) from ve
+
+    @classmethod
     def get_funcs(cls):
         """Return a set of registered functions.
 
@@ -281,8 +308,10 @@ class FuncHash:
 # Initialize the function hash registry.
 FuncHash.reset()
 
+
 def _do_digest(data, func):
     """Return the binary digest of `data` with the given `func`."""
+    func = FuncHash.get(func)
     hash = FuncHash.hash_from_func(func)
     if not hash:
         raise ValueError("no available hash function for hash", func)
@@ -417,7 +446,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
     True
 
     Application-specific codes (0x00-0x0f) are also accepted.  Other codes
-    raise a `ValueError`.
+    raise a `KeyError`.
 
     >>> mhfc = Multihash(0x01, b'...')
     >>> mhfc.func
@@ -425,21 +454,22 @@ class Multihash(namedtuple('Multihash', 'func digest')):
     >>> mhfc = Multihash(1234, b'...')
     Traceback (most recent call last):
         ...
-    ValueError: ('invalid hash function code', 1234)
+    KeyError: ('unknown hash function', 1234)
     """
     __slots__ = ()
 
     def __new__(cls, func, digest):
         try:
-            f = Func(func)  # function or function code
-        except ValueError as ve:
+            func = FuncHash.get(func)
+        except KeyError:
             if _is_app_specific_func(func):
-                f = int(func)  # application-specific function code
-            elif func in _func_from_name:
-                f = _func_from_name[func]  # function name
+                # Application-specific function codes
+                # are allowed even if not registered.
+                func = int(func)
             else:
-                raise ValueError("invalid hash function code", func) from ve
-        return super(cls, Multihash).__new__(cls, f, bytes(digest))
+                raise
+        digest = bytes(digest)
+        return super(cls, Multihash).__new__(cls, func, digest)
 
     @classmethod
     def from_hash(self, hash):
