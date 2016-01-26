@@ -229,8 +229,9 @@ class FuncReg:
         string) to be used with the given hashlib-compatible `new`
         constructor.  An existing application-specific function with the same
         code is replaced.  Registering a function with a `code` not in the
-        application-specific range (0x00-0xff) or with a hashlib-compatible
-        `name` already registered with a different code raises a `ValueError`.
+        application-specific range (0x00-0xff) or with a hashlib `name`
+        already registered for a function with a different code raises a
+        `ValueError`.
 
         >>> import hashlib
         >>> FuncReg.register(0x03, 'md5', hashlib.md5)
@@ -243,11 +244,11 @@ class FuncReg:
         if not _is_app_specific_func(code):
             raise ValueError(
                 "only application-specific functions can be registered")
-        existing_code = cls._func_from_hash.get(name, code)
-        if existing_code != code:
+        existing_func = cls._func_from_hash.get(name, code)
+        if existing_func != code:
             raise ValueError(
-                "function name is already registered with a different code",
-                existing_code)
+                "hashlib name is already registered for a different function",
+                existing_func)
         if code in cls._func_hash:
             cls.unregister(code)  # ensure no orphan entries
         cls._func_hash[code] = cls._hash(name, new)
