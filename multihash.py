@@ -281,6 +281,14 @@ class FuncHash:
 # Initialize the function hash registry.
 FuncHash.reset()
 
+def _do_digest(data, func):
+    """Return the binary digest of `data` with the given `func`."""
+    hash = FuncHash.hash_from_func(func)
+    if not hash:
+        raise ValueError("no available hash function for hash", func)
+    hash.update(data)
+    return bytes(hash.digest())
+
 
 class Codecs:
     """Registry of supported codecs."""
@@ -500,11 +508,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         Application-specific hash functions are also supported (see
         `FuncHash`).
         """
-        hash = FuncHash.hash_from_func(self.func)
-        if not hash:
-            raise ValueError("no available hash function for hash", self.func)
-        hash.update(data)
-        digest = bytes(hash.digest())
+        digest = _do_digest(data, self.func)
         return digest[:len(self.digest)] == self.digest
 
     def truncate(self, length):
@@ -539,11 +543,8 @@ def digest(data, func):
     >>> mh.encode('base64')
     b'ERQL7se16j8P28ldDdR/PFvCddqKMw=='
     """
-    hash = FuncHash.hash_from_func(func)
-    if not hash:
-        raise ValueError("no available hash function for hash", func)
-    hash.update(data)
-    return Multihash.from_hash(hash)
+    digest = _do_digest(data, func)
+    return Multihash(func, digest)
 
 
 def decode(mhash, encoding=None):
