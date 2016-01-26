@@ -67,15 +67,25 @@ it.  First you must create a `Multihash` instance with the desired function
 and the computed binary digest.  If you already know them, you may create the
 `Multihash` instance directly:
 
->>> mh = multihash.Multihash(multihash.Func.sha3_512, b'...')
+>>> mh = multihash.Multihash(multihash.Func.sha2_512, b'...')
+>>> print(mh)  # doctest: +ELLIPSIS
+Multihash(func=<Func.sha2_512: 19>, digest=b'...')
 
-You may also use the function code (``0x13``) or its name (``'sha2-512'``)
-instead of the `Func` member.  However, you are also able to create
+Instead of the `Func` member, you may use the function code (``19`` or
+``0x13``) or its name (``'sha2-512'`` or ``'sha2_512'``).  You may also create
 `Multihash` instances from hashlib-compatible objects:
 
 >>> import hashlib
 >>> hash = hashlib.sha1(data)
 >>> mh = Multihash.from_hash(hash)
+>>> print(mh)  # doctest: +ELLIPSIS
+Multihash(func=<Func.sha1: 17>, digest=b'...')
+
+Or you may get a `Multihash` instance with the `digest()` function, which
+internally uses a hashlib-compatible implementation of the indicated function
+to do the job for you:
+
+>>> mh = multihash.digest(data, multihash.Func.sha1)
 >>> print(mh)  # doctest: +ELLIPSIS
 Multihash(func=<Func.sha1: 17>, digest=b'...')
 
@@ -516,6 +526,24 @@ class Multihash(namedtuple('Multihash', 'func digest')):
             raise ValueError("cannot enlarge the original digest by %d bytes"
                              % (length - len(self.digest)))
         return self.__class__(self.func, self.digest[:length])
+
+
+def digest(data, func):
+    """Hash the given `data` into a new `Multihash`.
+
+    The given hash function `func` is used to perform the hashing.  It must be
+    a registered hash function (see `FuncHash`).
+
+    >>> data = b'foo'
+    >>> mh = digest(data, Func.sha1)
+    >>> mh.encode('base64')
+    b'ERQL7se16j8P28ldDdR/PFvCddqKMw=='
+    """
+    hash = FuncHash.hash_from_func(func)
+    if not hash:
+        raise ValueError("no available hash function for hash", func)
+    hash.update(data)
+    return Multihash.from_hash(hash)
 
 
 def decode(mhash, encoding=None):
