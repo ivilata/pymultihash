@@ -136,10 +136,6 @@ class Func(Enum):
     blake2b = 0x40
     blake2s = 0x41
 
-# Allows lookup by `Func` member name or CSV table name.
-_func_from_name = dict(Func.__members__)
-_func_from_name.update({f.name.replace('_', '-'): f for f in Func})
-
 
 class FuncReg:
     """Registry of hash supported functions."""
@@ -178,6 +174,10 @@ class FuncReg:
         }
         assert set(cls._func_hash) == set(Func)
 
+        # Allows lookup by `Func` member name or CSV table name.
+        cls._func_from_name = dict(Func.__members__)
+        cls._func_from_name.update({f.name.replace('_', '-'): f for f in Func})
+
         # Maps hashlib names to multihash-supported functions.
         cls._func_from_hash = {h.name: f for (f, h) in cls._func_hash.items()}
 
@@ -199,8 +199,8 @@ class FuncReg:
         """
         if func_hint in cls._func_hash:
             return func_hint  # `Func` member or registered app-specific code
-        if func_hint in _func_from_name:
-            return _func_from_name[func_hint]  # `Func` member name
+        if func_hint in cls._func_from_name:
+            return cls._func_from_name[func_hint]  # `Func` member name
         try:
             return Func(func_hint)  # `Func` member value
         except ValueError as ve:
