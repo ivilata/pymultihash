@@ -197,16 +197,16 @@ class FuncReg:
         >>> fm == fnu == fnh == fc
         True
         """
-        if func_hint in cls._func_hash:
-            return func_hint  # `Func` member or registered app-specific code
-        if func_hint in cls._func_from_name:
-            return cls._func_from_name[func_hint]  # `Func` member name
-        try:
-            return Func(func_hint)  # `Func` member value
-        except ValueError as ve:
-            # Looking up application-specific functions by name
-            # is not yet supported.
-            raise KeyError("unknown hash function", func_hint) from ve
+        # Different possibilities of `func_hint`, most to least probable.
+        try:  # `Func` member (or its value)
+            return Func(func_hint)
+        except ValueError:
+            pass
+        if func_hint in cls._func_from_name:  # `Func` member name, extended
+            return cls._func_from_name[func_hint]
+        if func_hint in cls._func_hash:  # registered app-specific code
+            return func_hint
+        raise KeyError("unknown hash function", func_hint)
 
     @classmethod
     def get_funcs(cls):
