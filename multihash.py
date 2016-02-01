@@ -109,10 +109,30 @@ version of the multihash.
 
 """
 
-from base64 import b64encode
 from collections import namedtuple
 from enum import Enum
 from numbers import Integral
+
+# Import standard hashlib-compatible modules.
+import hashlib
+# Import codecs mentioned in the multihash spec.
+import binascii
+import base64
+
+# Try to import known optional hashlib-compatible modules.
+try:
+    import sha3
+except ImportError:
+    sha3 = None
+try:
+    import pyblake2 as blake2
+except ImportError:
+    blake2 = None
+# Try to import external codecs mentioned in the multihash spec.
+try:
+    import base58
+except ImportError:
+    base58 = None
 
 
 def _is_app_specific_func(code):
@@ -154,17 +174,6 @@ class FuncReg:
     @classmethod
     def reset(cls):
         """Reset the registry to the standard multihash functions."""
-        # Try to import known hashlib-compatible modules.
-        import hashlib as hl
-        try:
-            import sha3 as s3
-        except ImportError:
-            s3 = None
-        try:
-            import pyblake2 as b2
-        except ImportError:
-            b2 = None
-
         # Maps function names (hyphens or underscores) to registered functions.
         cls._func_from_name = {}
 
@@ -176,27 +185,27 @@ class FuncReg:
 
         register = cls._do_register
         for (code, name, hash_name, hash_new) in [
-                (Func.sha1, Func.sha1.name, 'sha1', hl.sha1),
+                (Func.sha1, Func.sha1.name, 'sha1', hashlib.sha1),
 
-                (Func.sha2_256, Func.sha2_256.name, 'sha256', hl.sha256),
-                (Func.sha2_512, Func.sha2_512.name, 'sha512', hl.sha512),
+                (Func.sha2_256, Func.sha2_256.name, 'sha256', hashlib.sha256),
+                (Func.sha2_512, Func.sha2_512.name, 'sha512', hashlib.sha512),
 
                 (Func.sha3_512, Func.sha3_512.name, 'sha3_512',
-                 s3.sha3_512 if s3 else None),
+                 sha3.sha3_512 if sha3 else None),
                 (Func.sha3_384, Func.sha3_384.name, 'sha3_384',
-                 s3.sha3_384 if s3 else None),
+                 sha3.sha3_384 if sha3 else None),
                 (Func.sha3_256, Func.sha3_256.name, 'sha3_256',
-                 s3.sha3_256 if s3 else None),
+                 sha3.sha3_256 if sha3 else None),
                 (Func.sha3_224, Func.sha3_224.name, 'sha3_224',
-                 s3.sha3_224 if s3 else None),
+                 sha3.sha3_224 if sha3 else None),
 
                 (Func.shake_128, Func.shake_128.name, 'shake_128', None),
                 (Func.shake_256, Func.shake_256.name, 'shake_256', None),
 
                 (Func.blake2b, Func.blake2b.name, 'blake2b',
-                 b2.blake2b if b2 else None),
+                 blake2.blake2b if blake2 else None),
                 (Func.blake2s, Func.blake2s.name, 'blake2s',
-                 b2.blake2s if b2 else None)]:
+                 blake2.blake2s if blake2 else None)]:
             register(code, name, hash_name, hash_new)
         assert set(cls._func_hash) == set(Func)
 
@@ -375,24 +384,15 @@ class CodecReg:
     @classmethod
     def reset(cls):
         """Reset the registry to the standard codecs."""
-        # Try to import codecs mentioned in the hashlib spec.
-        import binascii
-        import base64
-
         c = cls._codec
         cls._codecs = {
             'hex': c(binascii.b2a_hex, binascii.a2b_hex),
             'base32': c(base64.b32encode, base64.b32decode),
             'base64': c(base64.b64encode, base64.b64decode)
         }
-
-        # The spec doesn't have compulsory codes, though.
-        try:
-            import base58
+        if base58:
             cls._codecs['base58'] = c(
                 lambda s: bytes(base58.b58encode(s)), base58.b58decode)
-        except ImportError:
-            pass
 
     @classmethod
     def get_codecs(cls):
@@ -562,7 +562,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         """
         return 'Multihash({func}, b64:{digest})'.format(
             func=self.func.name if self.func in Func else hex(self.func),
-            digest=b64encode(self.digest).decode()
+            digest=base64.b64encode(self.digest).decode()
         )
 
     def encode(self, encoding=None):
