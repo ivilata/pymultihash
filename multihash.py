@@ -375,21 +375,25 @@ def _do_digest(data, func):
 class CodecReg:
     """Registry of supported codecs."""
 
+    # Common codec data.
+    _common_codec_data = [  # (name, encode, decode)
+        ('hex', binascii.b2a_hex, binascii.a2b_hex),
+        ('base32', base64.b32encode, base64.b32decode),
+        ('base64', base64.b64encode, base64.b64decode)]
+    if base58:
+        _common_codec_data.append(
+            ('base58', lambda s: bytes(base58.b58encode(s)), base58.b58decode))
+
     # Codec data: encoding and decoding functions (both from bytes to bytes).
     _codec = namedtuple('codec', 'encode decode')
 
     @classmethod
     def reset(cls):
         """Reset the registry to the standard codecs."""
+        cls._codecs = codecs = {}
         c = cls._codec
-        cls._codecs = {
-            'hex': c(binascii.b2a_hex, binascii.a2b_hex),
-            'base32': c(base64.b32encode, base64.b32decode),
-            'base64': c(base64.b64encode, base64.b64decode)
-        }
-        if base58:
-            cls._codecs['base58'] = c(
-                lambda s: bytes(base58.b58encode(s)), base58.b58decode)
+        for (name, encode, decode) in cls._common_codec_data:
+            cls._codecs[name] = c(encode, decode)
 
     @classmethod
     def get_codecs(cls):
