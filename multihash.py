@@ -304,17 +304,24 @@ class FuncReg:
 
         >>> import hashlib
         >>> FuncReg.register(0x03, 'md-5', 'md5', hashlib.md5)
-        >>> 0x03 in FuncReg.get_funcs()
-        True
+        >>> FuncReg.get('md-5')
+        3
         >>> FuncReg.unregister(0x03)
-        >>> 0x03 in FuncReg.get_funcs()
-        False
+        >>> FuncReg.get('md-5')
+        Traceback (most recent call last):
+            ...
+        KeyError: ('unknown hash function', 'md-5')
         """
         if code in Func:
             raise ValueError(
                 "only application-specific functions can be unregistered")
+        # Remove hashlib data and mapping to hash.
         hash = cls._func_hash.pop(code)
         del cls._func_from_hash[hash.name]
+        # Remove mapping to function by name.
+        func_names = {n for (n, f) in cls._func_from_name.items() if f == code}
+        for func_name in func_names:
+            del cls._func_from_name[func_name]
 
     @classmethod
     def func_from_hash(cls, hash):
