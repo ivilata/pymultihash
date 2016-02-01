@@ -165,28 +165,40 @@ class FuncReg:
         except ImportError:
             b2 = None
 
-        h = cls._hash
-        cls._func_hash = {
-            Func.sha1: h('sha1', hl.sha1),
-            Func.sha2_256: h('sha256', hl.sha256),
-            Func.sha2_512: h('sha512', hl.sha512),
-            Func.sha3_512: h('sha3_512', s3.sha3_512 if s3 else None),
-            Func.sha3_384: h('sha3_384', s3.sha3_384 if s3 else None),
-            Func.sha3_256: h('sha3_256', s3.sha3_256 if s3 else None),
-            Func.sha3_224: h('sha3_224', s3.sha3_224 if s3 else None),
-            Func.shake_128: h('shake_128', None),
-            Func.shake_256: h('shake_256', None),
-            Func.blake2b: h('blake2b', b2.blake2b if b2 else None),
-            Func.blake2s: h('blake2s', b2.blake2s if b2 else None),
-        }
+        # Hashlib compatibility data by function.
+        cls._func_hash = {}
+
+        # Maps function names (hyphens or underscores) to registered functions.
+        cls._func_from_name = {}
+
+        # Maps hashlib names to registered functions.
+        cls._func_from_hash = {}
+
+        register = cls._do_register
+        for (code, name, hash_name, hash_new) in [
+                (Func.sha1, Func.sha1.name, 'sha1', hl.sha1),
+
+                (Func.sha2_256, Func.sha2_256.name, 'sha256', hl.sha256),
+                (Func.sha2_512, Func.sha2_512.name, 'sha512', hl.sha512),
+
+                (Func.sha3_512, Func.sha3_512.name, 'sha3_512',
+                 s3.sha3_512 if s3 else None),
+                (Func.sha3_384, Func.sha3_384.name, 'sha3_384',
+                 s3.sha3_384 if s3 else None),
+                (Func.sha3_256, Func.sha3_256.name, 'sha3_256',
+                 s3.sha3_256 if s3 else None),
+                (Func.sha3_224, Func.sha3_224.name, 'sha3_224',
+                 s3.sha3_224 if s3 else None),
+
+                (Func.shake_128, Func.shake_128.name, 'shake_128', None),
+                (Func.shake_256, Func.shake_256.name, 'shake_256', None),
+
+                (Func.blake2b, Func.blake2b.name, 'blake2b',
+                 b2.blake2b if b2 else None),
+                (Func.blake2s, Func.blake2s.name, 'blake2s',
+                 b2.blake2s if b2 else None)]:
+            register(code, name, hash_name, hash_new)
         assert set(cls._func_hash) == set(Func)
-
-        # Allows lookup by `Func` member name or CSV table name.
-        cls._func_from_name = dict(Func.__members__)
-        cls._func_from_name.update({f.name.replace('_', '-'): f for f in Func})
-
-        # Maps hashlib names to multihash-supported functions.
-        cls._func_from_hash = {h.name: f for (f, h) in cls._func_hash.items()}
 
     @classmethod
     def get(cls, func_hint):
@@ -227,6 +239,14 @@ class FuncReg:
         True
         """
         return {func for func in cls._func_hash}
+
+    @classmethod
+    def _do_register(cls, code, name, hash_name, hash_new):
+        """Add hash function data to the registry without checks."""
+        cls._func_hash[code] = cls._hash(hash_name, hash_new)
+        cls._func_from_name[name.replace('-', '_')] = code
+        cls._func_from_name[name.replace('_', '-')] = code
+        cls._func_from_hash[hash_name] = code
 
     @classmethod
     def register(cls, code, name, hash_name, hash_new):
@@ -271,10 +291,7 @@ class FuncReg:
         if code in cls._func_hash:
             cls.unregister(code)
         # Proceed to registration.
-        cls._func_hash[code] = cls._hash(hash_name, hash_new)
-        cls._func_from_name[name.replace('-', '_')] = code
-        cls._func_from_name[name.replace('_', '-')] = code
-        cls._func_from_hash[hash_name] = code
+        cls._do_register(code, name, hash_name, hash_new)
 
     @classmethod
     def unregister(cls, code):
