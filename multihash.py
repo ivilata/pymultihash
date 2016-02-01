@@ -165,14 +165,14 @@ class FuncReg:
         except ImportError:
             b2 = None
 
-        # Hashlib compatibility data by function.
-        cls._func_hash = {}
-
         # Maps function names (hyphens or underscores) to registered functions.
         cls._func_from_name = {}
 
         # Maps hashlib names to registered functions.
         cls._func_from_hash = {}
+
+        # Hashlib compatibility data by function.
+        cls._func_hash = {}
 
         register = cls._do_register
         for (code, name, hash_name, hash_new) in [
@@ -243,10 +243,10 @@ class FuncReg:
     @classmethod
     def _do_register(cls, code, name, hash_name, hash_new):
         """Add hash function data to the registry without checks."""
-        cls._func_hash[code] = cls._hash(hash_name, hash_new)
         cls._func_from_name[name.replace('-', '_')] = code
         cls._func_from_name[name.replace('_', '-')] = code
         cls._func_from_hash[hash_name] = code
+        cls._func_hash[code] = cls._hash(hash_name, hash_new)
 
     @classmethod
     def register(cls, code, name, hash_name, hash_new):
@@ -315,13 +315,13 @@ class FuncReg:
         if code in Func:
             raise ValueError(
                 "only application-specific functions can be unregistered")
-        # Remove hashlib data and mapping to hash.
-        hash = cls._func_hash.pop(code)
-        del cls._func_from_hash[hash.name]
         # Remove mapping to function by name.
         func_names = {n for (n, f) in cls._func_from_name.items() if f == code}
         for func_name in func_names:
             del cls._func_from_name[func_name]
+        # Remove hashlib data and mapping to hash.
+        hash = cls._func_hash.pop(code)
+        del cls._func_from_hash[hash.name]
 
     @classmethod
     def func_from_hash(cls, hash):
