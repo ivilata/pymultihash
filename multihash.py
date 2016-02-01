@@ -229,19 +229,19 @@ class FuncReg:
         return {func for func in cls._func_hash}
 
     @classmethod
-    def register(cls, code, name, new):
+    def register(cls, code, name, hash_name, hash_new):
         """Add an application-specific function to the registry.
 
         Registers a function with the given `code` (an integer) and `name` (a
-        string) to be used with the given hashlib-compatible `new`
-        constructor.  An existing application-specific function with the same
-        code is replaced.  Registering a function with a `code` not in the
-        application-specific range (0x00-0xff) or with a hashlib `name`
-        already registered for a function with a different code raises a
-        `ValueError`.
+        string), as well as a `hash_name` and `hash_new` constructor for
+        hashlib compatibility.  If the application-specific function is
+        already registered, the related data is replaced.  Registering a
+        function with a `code` not in the application-specific range
+        (0x00-0xff) or with names already registered for a different function
+        raises a `ValueError`.
 
         >>> import hashlib
-        >>> FuncReg.register(0x03, 'md5', hashlib.md5)
+        >>> FuncReg.register(0x03, 'md5', 'md5', hashlib.md5)
         >>> FuncReg.hash_from_func(0x03).name == 'md5'
         True
         >>> FuncReg.reset()
@@ -251,15 +251,24 @@ class FuncReg:
         if not _is_app_specific_func(code):
             raise ValueError(
                 "only application-specific functions can be registered")
-        existing_func = cls._func_from_hash.get(name, code)
-        if existing_func != code:
-            raise ValueError(
-                "hashlib name is already registered for a different function",
-                existing_func)
+        name_mapping_data = [  # (mapping, name in mapping, error if existing)
+            (cls._func_from_name, name,
+             "function name is already registered for a different function"),
+            (cls._func_from_hash, hash_name,
+             "hashlib name is already registered for a different function")]
+        # Check already registered name in different mappings.
+        for (mapping, nameinmap, errmsg) in name_mapping_data:
+            existing_func = mapping.get(nameinmap, code)
+            if existing_func != code:
+                raise ValueError(errmsg, existing_func)
+        # Unregister if existing to ensure no orphan entries.
         if code in cls._func_hash:
-            cls.unregister(code)  # ensure no orphan entries
-        cls._func_hash[code] = cls._hash(name, new)
-        cls._func_from_hash[name] = code
+            cls.unregister(code)
+        # Proceed to registration.
+        cls._func_hash[code] = cls._hash(hash_name, hash_new)
+        for (mapping, nameinmap, _) in name_mapping_data:
+            mapping[nameinmap] = code
+            mapping[nameinmap.replace('_', '-')] = code
 
     @classmethod
     def unregister(cls, code):
@@ -271,7 +280,7 @@ class FuncReg:
         (0x00-0xff) raises a `ValueError`.
 
         >>> import hashlib
-        >>> FuncReg.register(0x03, 'md5', hashlib.md5)
+        >>> FuncReg.register(0x03, 'md5', 'md5', hashlib.md5)
         >>> 0x03 in FuncReg.get_funcs()
         True
         >>> FuncReg.unregister(0x03)
