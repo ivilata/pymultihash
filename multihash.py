@@ -167,6 +167,24 @@ class Func(Enum):
 class FuncReg:
     """Registry of hash supported functions."""
 
+    # Standard hash function data.
+    _std_func_data = [  # (func, hash name, hash new)
+        (Func.sha1, 'sha1', hashlib.sha1),
+
+        (Func.sha2_256, 'sha256', hashlib.sha256),
+        (Func.sha2_512, 'sha512', hashlib.sha512),
+
+        (Func.sha3_512, 'sha3_512', sha3.sha3_512 if sha3 else None),
+        (Func.sha3_384, 'sha3_384', sha3.sha3_384 if sha3 else None),
+        (Func.sha3_256, 'sha3_256', sha3.sha3_256 if sha3 else None),
+        (Func.sha3_224, 'sha3_224', sha3.sha3_224 if sha3 else None),
+
+        (Func.shake_128, 'shake_128', None),
+        (Func.shake_256, 'shake_256', None),
+
+        (Func.blake2b, 'blake2b', blake2.blake2b if blake2 else None),
+        (Func.blake2s, 'blake2s', blake2.blake2s if blake2 else None)]
+
     # Hashlib compatibility data for a hash: hash name (e.g. ``sha256`` for
     # SHA-256, ``sha2-256`` in multihash), and the corresponding constructor.
     _hash = namedtuple('hash', 'name new')
@@ -184,29 +202,8 @@ class FuncReg:
         cls._func_hash = {}
 
         register = cls._do_register
-        for (code, name, hash_name, hash_new) in [
-                (Func.sha1, Func.sha1.name, 'sha1', hashlib.sha1),
-
-                (Func.sha2_256, Func.sha2_256.name, 'sha256', hashlib.sha256),
-                (Func.sha2_512, Func.sha2_512.name, 'sha512', hashlib.sha512),
-
-                (Func.sha3_512, Func.sha3_512.name, 'sha3_512',
-                 sha3.sha3_512 if sha3 else None),
-                (Func.sha3_384, Func.sha3_384.name, 'sha3_384',
-                 sha3.sha3_384 if sha3 else None),
-                (Func.sha3_256, Func.sha3_256.name, 'sha3_256',
-                 sha3.sha3_256 if sha3 else None),
-                (Func.sha3_224, Func.sha3_224.name, 'sha3_224',
-                 sha3.sha3_224 if sha3 else None),
-
-                (Func.shake_128, Func.shake_128.name, 'shake_128', None),
-                (Func.shake_256, Func.shake_256.name, 'shake_256', None),
-
-                (Func.blake2b, Func.blake2b.name, 'blake2b',
-                 blake2.blake2b if blake2 else None),
-                (Func.blake2s, Func.blake2s.name, 'blake2s',
-                 blake2.blake2s if blake2 else None)]:
-            register(code, name, hash_name, hash_new)
+        for (func, hash_name, hash_new) in cls._std_func_data:
+            register(func, func.name, hash_name, hash_new)
         assert set(cls._func_hash) == set(Func)
 
     @classmethod
