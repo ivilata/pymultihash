@@ -90,23 +90,24 @@ and the computed binary digest.  If you already know them, you may create the
 >>> print(mh)  # doctest: +ELLIPSIS
 Multihash(sha2_512, b64:...)
 
-Instead of the `Func` member, you may use the function name (``'sha2-512'`` or
-``'sha2_512'``) or its code (``19`` or ``0x13``).  You may also create
-`Multihash` instances from hashlib-compatible objects:
+Instead of the `Func` member, you may find more comfortable to use the
+function name (e.g. ``'sha2-512'`` or ``'sha2_512'``) or its code (e.g. ``19``
+or ``0x13``).  Or you may create `Multihash` instances straight from
+hashlib-compatible objects:
 
 >>> import hashlib
 >>> hash = hashlib.sha1(data)
 >>> mh = Multihash.from_hash(hash)
->>> print(mh)  # doctest: +ELLIPSIS
-Multihash(sha1, b64:...)
+>>> print(mh)
+Multihash(sha1, b64:C+7Hteo/D9vJXQ3UfzxbwnXaijM=)
 
-Or you may get a `Multihash` instance with the `digest()` function, which
-internally uses a hashlib-compatible implementation of the indicated function
-to do the job for you:
+However the easiest way to get a `Multihash` instance is with the `digest()`
+function, which internally uses a hashlib-compatible implementation of the
+indicated function to do the job for you:
 
->>> mh = multihash.digest(data, multihash.Func.sha1)
->>> print(mh)  # doctest: +ELLIPSIS
-Multihash(sha1, b64:...)
+>>> mh = multihash.digest(data, 'sha1')
+>>> print(mh)
+Multihash(sha1, b64:C+7Hteo/D9vJXQ3UfzxbwnXaijM=)
 
 In any case, getting the multihash-encoded digest is very simple:
 
