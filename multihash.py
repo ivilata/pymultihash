@@ -117,7 +117,48 @@ b'ERQL7se16j8P28ldDdR/PFvCddqKMw=='
 As before, an encoding (Base64) was specified to avoid getting the binary
 version of the multihash.
 
-.. functions
+The hash function registry
+==========================
+
+As the multihash specification indicates, you may use hash function codes in
+the range 0x00-0x0f to specify application-specific hash functions.
+The `decode()` function allows such multihashes, and the `Multihash`
+constructor allows specifying such hash functions by their integer code:
+
+>>> import multihash
+>>> import hashlib
+>>> data = b'foo'
+>>> mh = multihash.Multihash(0x05, hashlib.md5(data).digest())
+>>> print(mh)  # doctest: +ELLIPSIS
+Multihash(0x5, b64:rL0Y20zC+Fzt72VPzMSk2A==)
+
+However this does not allow using more intuitive strings instead of numbers
+for application-specific functions, and digesting or verifying with such a
+function is not possible:
+
+>>> multihash.digest(data, 'md5')
+Traceback (most recent call last):
+    ...
+KeyError: ('unknown hash function', 'md5')
+>>> mh.verify(data)
+Traceback (most recent call last):
+    ...
+KeyError: ('unknown hash function', 5)
+
+The `FuncReg` class helps work around these problems by providing a registry
+of hash functions.  You may add your application-specific hash functions there
+with a code, a name, and optionally a name and a callable object for
+hashlib-compatible operations:
+
+>>> multihash.FuncReg.register(0x05, 'md-5', 'md5', hashlib.md5)
+>>> multihash.digest(data, 'md-5')  # doctest: +ELLIPSIS
+Multihash(func=5, digest=b'...')
+>>> mh.verify(data)
+True
+
+You may remove your application-specific functions from the registry as well:
+
+>>> multihash.FuncReg.unregister(0x05)
 
 .. codecs
 
