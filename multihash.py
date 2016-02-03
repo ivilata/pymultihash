@@ -10,8 +10,9 @@ The main component in the module is the `Multihash` class, a named tuple that
 represents a hash function and a digest created with it, with extended
 abilities to work with hashlib-compatible hash functions, verify the integrity
 of data, and encode itself to a byte string in the binary format described in
-the specification.  The `decode()` function can be used for the inverse
-operation, i.e. converting a byte string into a `Multihash` object.
+the specification (possibly ASCII-encoded).  The `decode()` function can be
+used for the inverse operation, i.e. converting a (possibly ASCII-encoded)
+byte string into a `Multihash` object.
 
 .. _multihash: https://github.com/jbenet/multihash
 
@@ -39,18 +40,19 @@ the given byte string against the encoded digest:
 >>> mh.verify(data)
 True
 
-Please note that we needed to specify that the multihash is Base64-encoded,
-otherwise binary encoding is assumed.  The verification internally uses a
-hashlib-compatible implementation of the function indicated by the encoded
-multihash to check the data.  Read about codecs and hash functions
-further below.
+Please note that you needed to specify that the multihash is Base64-encoded,
+otherwise binary encoding is assumed (and the decoding will probably fail).
+The verification internally uses a hashlib-compatible implementation of the
+function indicated by the encoded multihash to check the data.  Read more
+about codecs and hash functions further below.
 
 The function in a `Multihash` object is stored as a member of the `Func`
 enumeration, which contains one member per function listed in the `multihash`_
 specification.  The name of a `Func` member is the name of that function in
 the specification (with hyphens replaced by underscores), and its value is the
 function code.  The `Multihash` object also contains the binary string with
-the raw hash digest.
+the raw hash digest.  Application-specific hash functions are also supported,
+but their numeric code is used instead of a `Func` member.
 
 >>> mh  # doctest: +ELLIPSIS
 Multihash(func=<Func.sha2_256: 18>, digest=b'...')
@@ -60,10 +62,21 @@ Multihash(func=<Func.sha2_256: 18>, digest=b'...')
 32
 
 The short representation of a `Multihash` object only shows the function name
-(or its code), and the Base64-encoded version of the raw hash digest:
+(or its code if application-specific), and the Base64-encoded version of the
+raw hash digest:
 
 >>> print(mh)
 Multihash(sha2_256, b64:LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564=)
+
+If you need a shorter multihash, you may truncate it while keeping the initial
+bytes of the raw hash digest.  A byte string validates against a truncated
+multihash if its digest bytes match the initial bytes of the string's hash:
+
+>>> mh_trunc = mh.truncate(16)
+>>> print(mh_trunc)
+Multihash(sha2_256, b64:LCa0a2j/xo/5m0U8HTBBNA==)
+>>> mh_trunc.verify(data)
+True
 
 Encoding
 --------
