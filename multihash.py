@@ -335,25 +335,26 @@ class FuncReg:
         return {func for func in cls._func_hash}
 
     @classmethod
-    def _do_register(cls, code, name, hash_name, hash_new):
+    def _do_register(cls, code, name, hash_name=None, hash_new=None):
         """Add hash function data to the registry without checks."""
         cls._func_from_name[name.replace('-', '_')] = code
         cls._func_from_name[name.replace('_', '-')] = code
-        cls._func_from_hash[hash_name] = code
+        if hash_name:
+            cls._func_from_hash[hash_name] = code
         cls._func_hash[code] = cls._hash(hash_name, hash_new)
 
     @classmethod
-    def register(cls, code, name, hash_name, hash_new):
+    def register(cls, code, name, hash_name=None, hash_new=None):
         """Add an application-specific function to the registry.
 
         Registers a function with the given `code` (an integer) and `name` (a
         string, which is added both with only hyphens and only underscores),
-        as well as a `hash_name` and `hash_new` constructor for hashlib
-        compatibility.  If the application-specific function is already
-        registered, the related data is replaced.  Registering a function with
-        a `code` not in the application-specific range (0x00-0xff) or with
-        names already registered for a different function raises a
-        `ValueError`.
+        as well as an optional `hash_name` and `hash_new` constructor for
+        hashlib compatibility.  If the application-specific function is
+        already registered, the related data is replaced.  Registering a
+        function with a `code` not in the application-specific range
+        (0x00-0xff) or with names already registered for a different function
+        raises a `ValueError`.
 
         >>> import hashlib
         >>> FuncReg.register(0x03, 'md-5', 'md5', hashlib.md5)
@@ -415,7 +416,8 @@ class FuncReg:
             del cls._func_from_name[func_name]
         # Remove hashlib data and mapping to hash.
         hash = cls._func_hash.pop(code)
-        del cls._func_from_hash[hash.name]
+        if hash.name:
+            del cls._func_from_hash[hash.name]
 
     @classmethod
     def func_from_hash(cls, hash):
