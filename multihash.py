@@ -160,6 +160,15 @@ You may remove your application-specific functions from the registry as well:
 
 >>> multihash.FuncReg.unregister(0x05)
 
+`FuncReg` also allows you to iterate over registered functions (as `Func`
+members or function codes), and check if it contains a given function
+(i.e. whether the `Func` or code is registered or not).
+
+>>> [f.name for f in multihash.FuncReg if f == multihash.Func.sha3]
+['sha3_512']
+>>> 0x05 in multihash.FuncReg
+False
+
 The codec registry
 ==================
 
@@ -195,6 +204,14 @@ True
 You may remove any codec from the registry as well:
 
 >>> multihash.CodecReg.unregister('uu')
+
+`CodecReg` also allows you to iterate over registered codec names, and check
+if it contains a given codec (i.e. whether it is registered or not).
+
+>>> {'hex', 'base64'}.issubset(multihash.CodecReg)
+True
+>>> 'base32' in multihash.CodecReg
+True
 """
 
 from collections import namedtuple
@@ -254,7 +271,12 @@ class Func(Enum):
 
 class _FuncRegMeta(type):
     def __contains__(self, func):
-        """Return whether `func` is a registered function."""
+        """Return whether `func` is a registered function.
+
+        >>> FuncReg.reset()
+        >>> Func.sha2_256 in FuncReg
+        True
+        """
         return func in self._func_hash
 
     def __iter__(self):
@@ -469,7 +491,12 @@ def _do_digest(data, func):
 
 class _CodecRegMeta(type):
     def __contains__(self, encoding):
-        """Return whether `encoding` is a registered codec."""
+        """Return whether `encoding` is a registered codec.
+
+        >>> CodecReg.reset()
+        >>> 'base64' in CodecReg
+        True
+        """
         return encoding in self._codecs
 
     def __iter__(self):
