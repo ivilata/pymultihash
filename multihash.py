@@ -357,16 +357,16 @@ class FuncReg:
         raises a `ValueError`.
 
         >>> import hashlib
-        >>> FuncReg.register(0x03, 'md-5', 'md5', hashlib.md5)
-        >>> FuncReg.get('md-5') == FuncReg.get('md_5') == 0x03
+        >>> FuncReg.register(0x05, 'md-5', 'md5', hashlib.md5)
+        >>> FuncReg.get('md-5') == FuncReg.get('md_5') == 0x05
         True
-        >>> hashobj = FuncReg.hash_from_func(0x03)
+        >>> hashobj = FuncReg.hash_from_func(0x05)
         >>> hashobj.name == 'md5'
         True
-        >>> FuncReg.func_from_hash(hashobj) == 0x03
+        >>> FuncReg.func_from_hash(hashobj) == 0x05
         True
         >>> FuncReg.reset()
-        >>> 0x03 in FuncReg.get_funcs()
+        >>> 0x05 in FuncReg.get_funcs()
         False
         """
         if not _is_app_specific_func(code):
@@ -398,10 +398,10 @@ class FuncReg:
         (0x00-0xff) raises a `ValueError`.
 
         >>> import hashlib
-        >>> FuncReg.register(0x03, 'md-5', 'md5', hashlib.md5)
+        >>> FuncReg.register(0x05, 'md-5', 'md5', hashlib.md5)
         >>> FuncReg.get('md-5')
-        3
-        >>> FuncReg.unregister(0x03)
+        5
+        >>> FuncReg.unregister(0x05)
         >>> FuncReg.get('md-5')
         Traceback (most recent call last):
             ...
