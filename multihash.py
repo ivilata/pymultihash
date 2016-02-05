@@ -160,8 +160,41 @@ You may remove your application-specific functions from the registry as well:
 
 >>> multihash.FuncReg.unregister(0x05)
 
-.. codecs
+The codec registry
+==================
 
+Although a multihash is properly a binary packing format for a hash digest, it
+is not normally exchanged in binary form, but in some ASCII-encoded
+representation of it.  As seen above, multihash decoding and encoding calls
+support an ``encoding`` argument to allow ASCII decoding or encoding for
+your convenience.
+
+The encodings mentioned in the multihash standard are already enabled and
+available by using their name (a string) as the ``encoding`` argument.
+The ``base58`` encoding needs that the ``base58`` package is
+installed, though.
+
+The ``CodecReg`` class allows you to access the available codecs and register
+your own ones (or replace existing ones) with a name and encoding and decoding
+callables that get and return byte strings.  For instance, to add the uuencode
+codec:
+
+>>> import multihash
+>>> import binascii
+>>> multihash.CodecReg.register('uu', binascii.b2a_uu, binascii.a2b_uu)
+
+To use it:
+
+>>> mhash = b'6$10+[L>UZC\\\\/V\\\\E=#=1_/%O"==J*,P  \\n'
+>>> mh = multihash.decode(mhash, 'uu')
+>>> print(mh)
+Multihash(sha1, b64:C+7Hteo/D9vJXQ3UfzxbwnXaijM=)
+>>> mh.encode('uu') == mhash
+True
+
+You may remove any codec from the registry as well:
+
+>>> multihash.CodecReg.unregister('uu')
 """
 
 from collections import namedtuple
