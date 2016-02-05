@@ -252,7 +252,25 @@ class Func(Enum):
     blake2s = 0x41
 
 
-class FuncReg:
+class _FuncRegMeta(type):
+    def __contains__(self, func):
+        """Return whether `func` is a registered function."""
+        return func in self._func_hash
+
+    def __iter__(self):
+        """Iterate over registered functions.
+
+        Standard multihash functions are represented as members of `Func`,
+        while application-specific functions are integers.
+
+        >>> FuncReg.reset()
+        >>> set(FuncReg) == set(Func)
+        True
+        """
+        return iter(self._func_hash)
+
+
+class FuncReg(metaclass=_FuncRegMeta):
     """Registry of hash supported functions."""
 
     # Standard hash function data.
@@ -322,19 +340,6 @@ class FuncReg:
         raise KeyError("unknown hash function", func_hint)
 
     @classmethod
-    def get_funcs(cls):
-        """Return a set of registered functions.
-
-        Standard multihash functions are represented as members of `Func`,
-        while application-specific functions are integers.
-
-        >>> FuncReg.reset()
-        >>> FuncReg.get_funcs() == set(Func)
-        True
-        """
-        return {func for func in cls._func_hash}
-
-    @classmethod
     def _do_register(cls, code, name, hash_name=None, hash_new=None):
         """Add hash function data to the registry without checks."""
         cls._func_from_name[name.replace('-', '_')] = code
@@ -366,7 +371,7 @@ class FuncReg:
         >>> FuncReg.func_from_hash(hashobj) == 0x05
         True
         >>> FuncReg.reset()
-        >>> 0x05 in FuncReg.get_funcs()
+        >>> 0x05 in FuncReg
         False
         """
         if not _is_app_specific_func(code):
