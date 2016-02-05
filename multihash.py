@@ -467,7 +467,22 @@ def _do_digest(data, func):
     return bytes(hash.digest())
 
 
-class CodecReg:
+class _CodecRegMeta(type):
+    def __contains__(self, encoding):
+        """Return whether `encoding` is a registered codec."""
+        return encoding in self._codecs
+
+    def __iter__(self):
+        """Iterate over registered codec names.
+
+        >>> CodecReg.reset()
+        >>> {'hex', 'base32', 'base64'}.issubset(CodecReg)
+        True
+        """
+        return iter(self._codecs)
+
+
+class CodecReg(metaclass=_CodecRegMeta):
     """Registry of supported codecs."""
 
     # Common codec data.
@@ -491,16 +506,6 @@ class CodecReg:
             cls._codecs[name] = c(encode, decode)
 
     @classmethod
-    def get_codecs(cls):
-        """Return a set of registered codec names.
-
-        >>> CodecReg.reset()
-        >>> 'base64' in CodecReg.get_codecs()
-        True
-        """
-        return {codec for codec in cls._codecs}
-
-    @classmethod
     def register(cls, name, encode, decode):
         """Add a codec to the registry.
 
@@ -513,7 +518,7 @@ class CodecReg:
         >>> CodecReg.get_decoder('uu') is binascii.a2b_uu
         True
         >>> CodecReg.reset()
-        >>> 'uu' in CodecReg.get_codecs()
+        >>> 'uu' in CodecReg
         False
         """
         cls._codecs[name] = cls._codec(encode, decode)
@@ -527,10 +532,10 @@ class CodecReg:
 
         >>> import binascii
         >>> CodecReg.register('uu', binascii.b2a_uu, binascii.a2b_uu)
-        >>> 'uu' in CodecReg.get_codecs()
+        >>> 'uu' in CodecReg
         True
         >>> CodecReg.unregister('uu')
-        >>> 'uu' in CodecReg.get_codecs()
+        >>> 'uu' in CodecReg
         False
         """
         del cls._codecs[name]
