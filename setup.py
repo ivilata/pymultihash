@@ -39,4 +39,5 @@ setup(
         'sha3': ['pysha3'],
         'blake2': ['pyblake2'],
     },
+    test_suite='tests.test_multihash.suite',
 )

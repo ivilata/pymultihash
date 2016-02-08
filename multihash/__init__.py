@@ -809,11 +809,3 @@ def decode(mhash, encoding=None):
         raise ValueError(
             "multihash length field does not match digest field length")
     return Multihash(func, digest)
-
-
-def _test():
-    import doctest
-    doctest.testmod()
-
-if __name__ == '__main__':
-    _test()
