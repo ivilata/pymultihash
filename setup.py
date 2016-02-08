@@ -12,7 +12,7 @@ with open(os.path.join(thisdir, 'README.rst')) as readme:
 
 setup(
     name='pymultihash',
-    version='0.5.0a1',
+    version='0.5.0',
 
     description="Python implementation of the multihash specification",
     long_description=long_description,
