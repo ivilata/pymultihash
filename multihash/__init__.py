@@ -527,7 +527,7 @@ class CodecReg(metaclass=_CodecRegMeta):
     @classmethod
     def reset(cls):
         """Reset the registry to the standard codecs."""
-        cls._codecs = codecs = {}
+        cls._codecs = {}
         c = cls._codec
         for (name, encode, decode) in cls._common_codec_data:
             cls._codecs[name] = c(encode, decode)
