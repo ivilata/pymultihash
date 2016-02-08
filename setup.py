@@ -36,7 +36,7 @@ setup(
     packages=['multihash'],
     install_requires=[],
     extras_require={
-        'sha3': ['sha3'],
+        'sha3': ['pysha3'],
         'blake2': ['pyblake2'],
     },
 )
