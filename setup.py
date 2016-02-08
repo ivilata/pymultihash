@@ -3,7 +3,7 @@
 """Pymultihash installation script."""
 
 import os.path
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # Load readme file into long description.
 thisdir = os.path.abspath(os.path.dirname(__file__))
@@ -33,7 +33,7 @@ setup(
     ],
     keywords="multihash hash digest format ASCII encoding",
 
-    packages=['multihash'],
+    packages=find_packages(),
     install_requires=[],
     extras_require={
         'sha3': ['pysha3'],
