@@ -239,6 +239,8 @@ try:
 except ImportError:
     base58 = None
 
+from multihash.version import __version__
+
 
 def _is_app_specific_func(code):
     """Is the given hash function integer `code` application-specific?"""

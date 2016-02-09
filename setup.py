@@ -5,14 +5,21 @@
 import os.path
 from setuptools import setup, find_packages
 
-# Load readme file into long description.
 thisdir = os.path.abspath(os.path.dirname(__file__))
+
+# Fetch version from source.
+with open(os.path.join(thisdir, 'multihash', 'version.py')) as verfile:
+    version = {}
+    exec(verfile.read(), version)
+    version=version['__version__']
+
+# Load readme file into long description.
 with open(os.path.join(thisdir, 'README.rst')) as readme:
     long_description = readme.read()
 
 setup(
     name='pymultihash',
-    version='0.6.0',
+    version=version,
 
     description="Python implementation of the multihash specification",
     long_description=long_description,
