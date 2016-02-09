@@ -12,7 +12,7 @@ with open(os.path.join(thisdir, 'README.rst')) as readme:
 
 setup(
     name='pymultihash',
-    version='0.5.0',
+    version='0.6.0',
 
     description="Python implementation of the multihash specification",
     long_description=long_description,
@@ -39,4 +39,5 @@ setup(
         'sha3': ['pysha3'],
         'blake2': ['pyblake2'],
     },
+    test_suite='tests.test_multihash.suite',
 )

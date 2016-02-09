@@ -527,7 +527,7 @@ class CodecReg(metaclass=_CodecRegMeta):
     @classmethod
     def reset(cls):
         """Reset the registry to the standard codecs."""
-        cls._codecs = codecs = {}
+        cls._codecs = {}
         c = cls._codec
         for (name, encode, decode) in cls._common_codec_data:
             cls._codecs[name] = c(encode, decode)
@@ -809,11 +809,3 @@ def decode(mhash, encoding=None):
         raise ValueError(
             "multihash length field does not match digest field length")
     return Multihash(func, digest)
-
-
-def _test():
-    import doctest
-    doctest.testmod()
-
-if __name__ == '__main__':
-    _test()
