@@ -239,7 +239,7 @@ try:
 except ImportError:
     base58 = None
 
-from multihash.version import __version__
+from multihash.version import __version__  # noqa
 
 
 def _is_app_specific_func(code):
