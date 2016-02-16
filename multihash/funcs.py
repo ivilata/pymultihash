@@ -76,7 +76,7 @@ class _FuncRegMeta(type):
 
 
 class FuncReg(metaclass=_FuncRegMeta):
-    """Registry of hash supported functions."""
+    """Registry of supported hash functions."""
 
     # Standard hash function data.
     _std_func_data = [  # (func, hash name, hash new)
