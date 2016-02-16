@@ -2,12 +2,12 @@ import doctest
 import unittest
 
 import multihash
-import multihash.func
+import multihash.funcs
 
 
 def suite():
     tests = unittest.TestSuite()
-    for module in [multihash.func, multihash]:
+    for module in [multihash.funcs, multihash]:
         tests.addTests(doctest.DocTestSuite(module))
     return tests
 

@@ -227,7 +227,7 @@ except ImportError:
     base58 = None
 
 from multihash.version import __version__  # noqa
-from multihash.func import _is_app_specific_func, Func, FuncReg
+from multihash.funcs import _is_app_specific_func, Func, FuncReg
 
 
 def _do_digest(data, func):
