@@ -11,7 +11,7 @@ thisdir = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(thisdir, 'multihash', 'version.py')) as verfile:
     version = {}
     exec(verfile.read(), version)
-    version=version['__version__']
+    version = version['__version__']
 
 # Load readme file into long description.
 with open(os.path.join(thisdir, 'README.rst')) as readme:
