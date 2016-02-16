@@ -3,11 +3,12 @@ import unittest
 
 import multihash
 import multihash.funcs
+import multihash.codecs
 
 
 def suite():
     tests = unittest.TestSuite()
-    for module in [multihash.funcs, multihash]:
+    for module in [multihash.funcs, multihash.codecs, multihash]:
         tests.addTests(doctest.DocTestSuite(module))
     return tests
 
