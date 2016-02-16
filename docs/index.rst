@@ -11,6 +11,26 @@
 
 .. automodule:: multihash
 
+API
+---
+
+.. autoclass:: Multihash
+   :members:
+.. autofunction:: digest
+.. autofunction:: decode
+
+Hash functions
+~~~~~~~~~~~~~~
+.. autoclass:: Func
+   :members:
+.. autoclass:: FuncReg
+   :members:
+
+Codecs
+~~~~~~
+.. autoclass:: CodecReg
+   :members:
+
 
 Indices and tables
 ==================
