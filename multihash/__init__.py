@@ -218,3 +218,10 @@ from multihash.version import __version__  # noqa
 from multihash.funcs import Func, FuncReg  # noqa
 from multihash.codecs import CodecReg  # noqa
 from multihash.multihash import Multihash, digest, decode  # noqa
+
+__all__ = [
+    '__version__',
+    'Func', 'FuncReg',
+    'CodecReg',
+    'Multihash', 'digest', 'decode',
+]
