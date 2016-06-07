@@ -15,6 +15,6 @@ byte string into a `Multihash` object.
 
 For more information, please see the documentation under the ``docs``
 directory and the docstrings in the ``multihash`` package.  Ready-to-read
-documentation is also available in https://pymultihash.readthedocs.org/.
+documentation is also available in https://pymultihash.readthedocs.io/.
 
 This package requires at least Python 3.4.
