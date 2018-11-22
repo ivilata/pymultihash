@@ -48,7 +48,7 @@ class CodecReg(metaclass=_CodecRegMeta):
         ('base64', base64.b64encode, base64.b64decode)]
     if base58:
         _common_codec_data.append(
-            ('base58', lambda s: bytes(base58.b58encode(s), 'ascii'), base58.b58decode))
+            ('base58', lambda s: bytes(base58.b58encode(s).decode(), 'ascii'), base58.b58decode))
 
     # Codec data: encoding and decoding functions (both from bytes to bytes).
     _codec = namedtuple('codec', 'encode decode')
