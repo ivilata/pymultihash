@@ -40,7 +40,7 @@ setup(
     ],
     keywords="multihash hash digest format ASCII encoding",
 
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     install_requires=[],
     extras_require={
         'sha3': ['pysha3'],
