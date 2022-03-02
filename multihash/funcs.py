@@ -217,7 +217,7 @@ class FuncReg(metaclass=_FuncRegMeta):
             ...
         KeyError: ('unknown hash function', 'md-5')
         """
-        if code in Func:
+        if not _is_app_specific_func(code):
             raise ValueError(
                 "only application-specific functions can be unregistered")
         # Remove mapping to function by name.
