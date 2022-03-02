@@ -113,7 +113,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         Multihash(0x1, b64:VEVTVA==)
         """
         return 'Multihash({func}, b64:{digest})'.format(
-            func=self.func.name if self.func in Func else hex(self.func),
+            func=self.func.name if isinstance(self.func, Func) else hex(self.func),
             digest=base64.b64encode(self.digest).decode()
         )
 
