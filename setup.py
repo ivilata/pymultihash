@@ -49,6 +49,7 @@ setup(
     extras_require={
         'sha3': ['pysha3'],
         'blake2': ['pyblake2'],
+        'base58': ['base58 >= 1.0'],
     },
     test_suite='tests.test_multihash.suite',
 )
