@@ -5,12 +5,14 @@ import multihash
 import multihash.funcs
 import multihash.codecs
 import multihash.multihash
+import multihash.utils
 
 
 def suite():
     tests = unittest.TestSuite()
     for module in [
             multihash.funcs, multihash.codecs, multihash.multihash,
+            multihash.utils,
             multihash]:
         tests.addTests(doctest.DocTestSuite(module))
     return tests

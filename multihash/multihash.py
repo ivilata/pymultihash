@@ -45,7 +45,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
     >>> mhfn.func is Func.sha2_256
     True
 
-    Application-specific codes (0x00-0x0f) are also accepted.  Other codes
+    Application-specific codes (0x01-0x0f) are also accepted.  Other codes
     raise a `KeyError`.
 
     >>> mhfc = Multihash(0x01, b'...')
@@ -180,8 +180,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
 
         Use this instead of `verify()` if the multihash has a digest shorter
         than the standard for its hash function (i.e. if it is the result of
-        truncating another multihash).  However, please note that this may
-        weaken verification.
+        truncating another multihash).
 
         >>> import hashlib
         >>> data = b'foo'
@@ -195,10 +194,27 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         >>> mh1.verify_truncated(data)
         True
 
+        However, please note that this verification may be weaker, and is
+        indeed forbidden for multihashes using the identity function (as
+        finding collisions is trivial).
+
+        >>> mh2 = Multihash(Func.identity, b'FOOBAR')
+        >>> mh2.verify(b'FOOBAR')
+        True
+        >>> mh2.verify(b'FOOBARBAZ')
+        False
+        >>> mh2.verify_truncated(b'FOOBARBAZ')
+        Traceback (most recent call last):
+            ...
+        ValueError: cannot truncate data digest for the identity function
+
         Application-specific hash functions are also supported (see
         `FuncReg`).
         """
         digest = _do_digest(data, self.func)
+        if self.func == Func.identity:
+            raise ValueError(
+                "cannot truncate data digest for the identity function")
         return digest[:len(self.digest)] == self.digest
 
     def truncate(self, length):
@@ -219,7 +235,17 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         Please note that a truncated multihash will no longer verify the same
         data, as the digest lengths will not match.  It may still be
         convenient for representation purposes, though.
+
+        As a special case, identity hashes do not support truncation.
+
+        >>> mh4 = Multihash('identity', b'FOOBAR')
+        >>> mh4.truncate(3)
+        Traceback (most recent call last):
+            ...
+        ValueError: cannot truncate identity digest
         """
+        if self.func == Func.identity:
+            raise ValueError("cannot truncate identity digest")
         if length > len(self.digest):
             raise ValueError("cannot enlarge the original digest by %d bytes"
                              % (length - len(self.digest)))

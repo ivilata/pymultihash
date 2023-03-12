@@ -123,7 +123,7 @@ The hash function registry
 ==========================
 
 As the multihash specification indicates, you may use hash function codes in
-the range 0x00-0x0f to specify application-specific hash functions.
+the range 0x01-0x0f to specify application-specific hash functions.
 The `decode()` function allows such multihashes, and the `Multihash`
 constructor allows specifying such hash functions by their integer code:
 

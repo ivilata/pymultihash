@@ -22,10 +22,12 @@ try:
 except ImportError:
     blake2 = None
 
+from multihash.utils import IdentityHash
+
 
 def _is_app_specific_func(code):
     """Is the given hash function integer `code` application-specific?"""
-    return isinstance(code, Integral) and (0x00 <= code <= 0x0f)
+    return isinstance(code, Integral) and (0x01 <= code <= 0x0f)
 
 
 class Func(IntEnum):
@@ -37,6 +39,7 @@ class Func(IntEnum):
     >>> Func.sha2_512.value == 0x13
     True
     """
+    identity = 0x00
     sha1 = 0x11
     sha2_256 = 0x12
     sha2_512 = 0x13
@@ -80,6 +83,8 @@ class FuncReg(metaclass=_FuncRegMeta):
 
     # Standard hash function data.
     _std_func_data = [  # (func, hash name, hash new)
+        (Func.identity, 'identity', IdentityHash),
+
         (Func.sha1, 'sha1', hashlib.sha1),
 
         (Func.sha2_256, 'sha256', hashlib.sha256),
@@ -163,7 +168,7 @@ class FuncReg(metaclass=_FuncRegMeta):
         hashlib compatibility.  If the application-specific function is
         already registered, the related data is replaced.  Registering a
         function with a `code` not in the application-specific range
-        (0x00-0xff) or with names already registered for a different function
+        (0x01-0xff) or with names already registered for a different function
         raises a `ValueError`.
 
         >>> import hashlib
@@ -205,7 +210,7 @@ class FuncReg(metaclass=_FuncRegMeta):
         Unregisters the function with the given `code` (an integer).  If the
         function is not registered, a `KeyError` is raised.  Unregistering a
         function with a `code` not in the application-specific range
-        (0x00-0xff) raises a `ValueError`.
+        (0x01-0xff) raises a `ValueError`.
 
         >>> import hashlib
         >>> FuncReg.register(0x05, 'md-5', 'md5', hashlib.md5)
