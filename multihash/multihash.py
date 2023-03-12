@@ -8,6 +8,7 @@
 from collections import namedtuple
 
 import base64
+import warnings
 
 from multihash.funcs import _is_app_specific_func, Func, FuncReg
 from multihash.codecs import CodecReg
@@ -145,7 +146,7 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         return mhash
 
     def verify(self, data):
-        r"""Does the given `data` hash to the digest in this `Multihash`?
+        r"""Does the given `data` hash to the digest in this multihash?
 
         >>> import hashlib
         >>> data = b'foo'
@@ -155,6 +156,44 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         True
         >>> mh.verify(b'foobar')
         False
+
+        Please note that a multihash with a digest shorter than the standard
+        for its hash function will fail to verify valid data, as digest
+        lengths will not match.  A warning will be issued in this case.  See
+        `verify_truncated()` for an alternative for such multihashes.
+
+        >>> mh1 = mh.truncate(len(mh.digest) // 2)
+        >>> mh1.verify(data)
+        False
+
+        Application-specific hash functions are also supported (see
+        `FuncReg`).
+        """
+        digest = _do_digest(data, self.func)
+        if len(self.digest) != len(digest):
+            warnings.warn("multihash and data digests have different lengths"
+                          " (truncated multihash?)")
+        return digest == self.digest
+
+    def verify_truncated(self, data):
+        r"""Is the digest of this multihash a prefix of that of `data`?
+
+        Use this instead of `verify()` if the multihash has a digest shorter
+        than the standard for its hash function (i.e. if it is the result of
+        truncating another multihash).  However, please note that this may
+        weaken verification.
+
+        >>> import hashlib
+        >>> data = b'foo'
+        >>> hash = hashlib.sha1(data)
+        >>> mh = Multihash.from_hash(hash)
+        >>> mh.verify(data)
+        True
+        >>> mh1 = mh.truncate(len(mh.digest) // 2)
+        >>> mh1.verify(data)
+        False
+        >>> mh1.verify_truncated(data)
+        True
 
         Application-specific hash functions are also supported (see
         `FuncReg`).
@@ -176,6 +215,10 @@ class Multihash(namedtuple('Multihash', 'func digest')):
         Traceback (most recent call last):
             ...
         ValueError: cannot enlarge the original digest by 4 bytes
+
+        Please note that a truncated multihash will no longer verify the same
+        data, as the digest lengths will not match.  It may still be
+        convenient for representation purposes, though.
         """
         if length > len(self.digest):
             raise ValueError("cannot enlarge the original digest by %d bytes"

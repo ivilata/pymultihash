@@ -69,13 +69,15 @@ raw hash digest:
 Multihash(sha2_256, b64:LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564=)
 
 If you need a shorter multihash, you may truncate it while keeping the initial
-bytes of the raw hash digest.  A byte string validates against a truncated
-multihash if its digest bytes match the initial bytes of the string's hash:
+bytes of the raw hash digest, but it will no longer be able to validate the
+same byte strings (unless explicitly instructed to truncate their digests):
 
 >>> mh_trunc = mh.truncate(16)
 >>> print(mh_trunc)
 Multihash(sha2_256, b64:LCa0a2j/xo/5m0U8HTBBNA==)
 >>> mh_trunc.verify(data)
+False
+>>> mh_trunc.verify_truncated(data)
 True
 
 Encoding
