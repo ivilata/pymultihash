@@ -124,5 +124,6 @@ class CodecReg(metaclass=_CodecRegMeta):
         """
         return cls._codecs[encoding].decode
 
+
 # Initialize the codec registry.
 CodecReg.reset()

@@ -263,5 +263,6 @@ class FuncReg(metaclass=_FuncRegMeta):
         new = cls._func_hash[func].new
         return new() if new else None
 
+
 # Initialize the function hash registry.
 FuncReg.reset()
