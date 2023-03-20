@@ -53,6 +53,7 @@ class Func(IntEnum):
     shake_256 = 0x19
     blake2b = 0x40
     blake2s = 0x41
+    md5 = 0xd5
 
 
 class _FuncRegMeta(type):
@@ -99,7 +100,9 @@ class FuncReg(metaclass=_FuncRegMeta):
         (Func.shake_256, 'shake_256', None),
 
         (Func.blake2b, 'blake2b', blake2.blake2b if blake2 else None),
-        (Func.blake2s, 'blake2s', blake2.blake2s if blake2 else None)]
+        (Func.blake2s, 'blake2s', blake2.blake2s if blake2 else None),
+
+        (Func.md5, 'md5', hashlib.md5)]
 
     # Hashlib compatibility data for a hash: hash name (e.g. ``sha256`` for
     # SHA-256, ``sha2-256`` in multihash), and the corresponding constructor.
