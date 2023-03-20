@@ -171,12 +171,15 @@ class FuncReg(metaclass=_FuncRegMeta):
         (0x01-0xff) or with names already registered for a different function
         raises a `ValueError`.
 
-        >>> import hashlib
-        >>> FuncReg.register(0x05, 'md-5', 'md5', hashlib.md5)
+        >>> class MyMD5:
+        ...     def __init__(self):
+        ...         self.name = 'mymd5'
+        ...
+        >>> FuncReg.register(0x05, 'md-5', 'mymd5', MyMD5)
         >>> FuncReg.get('md-5') == FuncReg.get('md_5') == 0x05
         True
         >>> hashobj = FuncReg.hash_from_func(0x05)
-        >>> hashobj.name == 'md5'
+        >>> hashobj.name == 'mymd5'
         True
         >>> FuncReg.func_from_hash(hashobj) == 0x05
         True
@@ -212,8 +215,11 @@ class FuncReg(metaclass=_FuncRegMeta):
         function with a `code` not in the application-specific range
         (0x01-0xff) raises a `ValueError`.
 
-        >>> import hashlib
-        >>> FuncReg.register(0x05, 'md-5', 'md5', hashlib.md5)
+        >>> class MyMD5:
+        ...     def __init__(self):
+        ...         self.name = 'mymd5'
+        ...
+        >>> FuncReg.register(0x05, 'md-5', 'mymd5', MyMD5)
         >>> FuncReg.get('md-5')
         5
         >>> FuncReg.unregister(0x05)

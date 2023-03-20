@@ -129,8 +129,17 @@ constructor allows specifying such hash functions by their integer code:
 
 >>> import multihash
 >>> import hashlib
+>>> class MyMD5:
+...     def __init__(self, data=b''):
+...         self.name = 'mymd5'
+...         self._md5 = hashlib.md5(data)
+...     def update(self, data):
+...         return self._md5.update(data)
+...     def digest(self):
+...         return self._md5.digest()
+...
 >>> data = b'foo'
->>> mh = multihash.Multihash(0x05, hashlib.md5(data).digest())
+>>> mh = multihash.Multihash(0x05, MyMD5(data).digest())
 >>> print(mh)  # doctest: +ELLIPSIS
 Multihash(0x5, b64:rL0Y20zC+Fzt72VPzMSk2A==)
 
@@ -138,10 +147,10 @@ However this does not allow using more intuitive strings instead of numbers
 for application-specific functions, and digesting or verifying with such a
 function is not possible:
 
->>> multihash.digest(data, 'md5')
+>>> multihash.digest(data, 'mymd5')
 Traceback (most recent call last):
     ...
-KeyError: ('unknown hash function', 'md5')
+KeyError: ('unknown hash function', 'mymd5')
 >>> mh.verify(data)
 Traceback (most recent call last):
     ...
@@ -152,7 +161,7 @@ of hash functions.  You may add your application-specific hash functions there
 with a code, a name, and optionally a name and a callable object for
 hashlib-compatible operations:
 
->>> multihash.FuncReg.register(0x05, 'md-5', 'md5', hashlib.md5)
+>>> multihash.FuncReg.register(0x05, 'md-5', 'mymd5', MyMD5)
 >>> multihash.digest(data, 'md-5')  # doctest: +ELLIPSIS
 Multihash(func=5, digest=b'...')
 >>> mh.verify(data)
