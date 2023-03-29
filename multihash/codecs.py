@@ -1,7 +1,9 @@
-# pymultihash: Python implementation of the multihash specification
+# SPDX-FileCopyrightText: 2016, 2023 Ivan Vilata-i-Balaguer <ivan@selidor.net>
+# SPDX-FileCopyrightText: 2016 Tim Daubenschütz <tim@ascribe.io>
 #
-# Initial author: Ivan Vilata-i-Balaguer
-# License: MIT
+# SPDX-License-Identifier: MIT
+
+# pymultihash: Python implementation of the multihash specification
 
 """Codec registry"""
 

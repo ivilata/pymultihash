@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: 2016 Ivan Vilata-i-Balaguer <ivan@selidor.net>
+..
+.. SPDX-License-Identifier: MIT
+
 .. pymultihash documentation master file, created by
    sphinx-quickstart on Tue Feb  9 13:56:10 2016.
    You can adapt this file completely to your liking, but it should at least

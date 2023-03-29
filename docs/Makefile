@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2016 Ivan Vilata-i-Balaguer <ivan@selidor.net>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 # Makefile for Sphinx documentation
 #
 

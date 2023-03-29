@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+# SPDX-FileCopyrightText: 2016 Ivan Vilata-i-Balaguer <ivan@selidor.net>
 #
+# SPDX-License-Identifier: CC0-1.0
+
 # pymultihash documentation build configuration file, created by
 # sphinx-quickstart on Tue Feb  9 13:56:10 2016.
 #

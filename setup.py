@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2016, 2022, 2023 Ivan Vilata-i-Balaguer <ivan@selidor.net>
+#
+# SPDX-License-Identifier: MIT
+
 # Based on PyPA sample project's setup script.
 
 """Pymultihash installation script."""
@@ -25,7 +29,7 @@ setup(
     long_description=long_description,
 
     url='https://github.com/ivilata/pymultihash',
-    author="Ivan Vilata-i-Balaguer",
+    author="Ivan Vilata-i-Balaguer <ivan@selidor.net>",
     author_email='ivan@selidor.net',
 
     license='MIT',

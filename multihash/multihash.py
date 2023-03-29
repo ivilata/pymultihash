@@ -1,7 +1,8 @@
-# pymultihash: Python implementation of the multihash specification
+# SPDX-FileCopyrightText: 2016, 2022, 2023 Ivan Vilata-i-Balaguer <ivan@selidor.net>
 #
-# Initial author: Ivan Vilata-i-Balaguer
-# License: MIT
+# SPDX-License-Identifier: MIT
+
+# pymultihash: Python implementation of the multihash specification
 
 """Multihash class and utility functions"""
 
